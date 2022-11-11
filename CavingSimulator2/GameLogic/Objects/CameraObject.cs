@@ -12,11 +12,11 @@ namespace CavingSimulator2.GameLogic.Objects
 {
     public class CameraObject : BaseObject
     {
-        Transform transform;
+        public Transform transform;
         Renderer renderer;
         RigBody rigBody;
         Player player;
-        ChunkGenerator chunkGenerator;
+        public ChunkGenerator chunkGenerator;
 
         public CameraObject(Transform transform) : base()
         {

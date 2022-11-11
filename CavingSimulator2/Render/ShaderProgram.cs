@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
@@ -39,6 +40,7 @@ namespace CavingSimulator2.Render
     {
         private bool disposed;
 
+        public readonly string name;
         public readonly int ShaderProgramHandle;
 
         public readonly int VertexShaderHandle;
@@ -51,7 +53,7 @@ namespace CavingSimulator2.Render
 
         public ShaderProgram(string vertexShaderPath = "shader.vert", string fragmentShaderPath = "shader.frag")
         {
-
+            this.name = name;
             string errorMessage;
 
             if (!CompileVertexShader(out VertexShaderHandle, out errorMessage, vertexShaderPath)) { throw new ArgumentException(errorMessage); }
@@ -209,7 +211,6 @@ namespace CavingSimulator2.Render
                 GL.GetActiveUniform(ShaderProgramHandle, i, 256, out _, out _, out ActiveUniformType activeUniformType, out string uniformName);
                 int location = GL.GetUniformLocation(ShaderProgramHandle, uniformName);
                 shaderUniforms[i] = new ShaderUniform(uniformName, location, activeUniformType);
-
             }
             return shaderUniforms;
         }

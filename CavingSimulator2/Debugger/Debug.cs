@@ -8,22 +8,29 @@ namespace CavingSimulator2.Debugger
 {
     public static class Debug
     {
-        public static Dictionary<string, Line> lines = new Dictionary<string, Line>();
+        private static Dictionary<string, Line> lines = new Dictionary<string, Line>();
 
-        public static List<string> linesOrder = new List<string>();
+        private static List<string> linesOrder = new List<string>();
 
         public static void Add(string name, int cursorPos, int linesCount)
         {
             linesOrder.Insert(0, name);
             lines.Add(name, new Line(name, cursorPos, linesCount));
         }
-
-        public static void Render()
+        public static void WriteLine(string name,int line, string str)
+        {
+            lines[name].WriteLine(line, str);
+        }
+        
+        public static async void Render()
         {
             foreach(string name in linesOrder)
             {
                 lines[name].Render();
             }
+            int lastrow = lines.Values.Max(line => line.lineCursor + line.lineCount - 1);
+            Console.CursorTop = lastrow;
+            Console.CursorLeft = 0;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace CavingSimulator.GameLogic.Components
         public Vector3 velocity = Vector3.Zero;
         public Vector3 angularVelocity = Vector3.Zero;
 
-        public float drag = 1f;
+        public float drag = 5f;
         public float angularDrag = 1f;
         public bool enableGravity = false;
         public float gravity = 1f;

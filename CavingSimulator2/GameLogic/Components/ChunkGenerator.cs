@@ -12,8 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
-using static CavingSimulator2.GameLogic.Components.ChunkGenerator.Chunk;
-using static OpenTK.Graphics.OpenGL.GL;
 
 namespace CavingSimulator2.GameLogic.Components
 {
@@ -21,9 +19,10 @@ namespace CavingSimulator2.GameLogic.Components
     {
         Transform transform;
 
-        private static Dictionary<Vector3i, Chunk> chunks = new Dictionary<Vector3i, Chunk>();
+        public static Dictionary<Vector3i, Chunk> chunks = new Dictionary<Vector3i, Chunk>();
+        public Queue<Vector3i> chunkMeshUpdates = new Queue<Vector3i>();
         public static FastNoise noise = new FastNoise();
-        public int loadDistance = 4;
+        public int loadDistance = 8;
 
         public ChunkGenerator(Transform transform)
         {
@@ -48,18 +47,38 @@ namespace CavingSimulator2.GameLogic.Components
                 for (int y = -loadDistance; y <= loadDistance; y++)
                 {
                     Vector3i pos = new Vector3i((int)targetChunk.X + x, (int)targetChunk.Y + y, 0);
-                    if (!chunks.ContainsKey(pos))
+                    
+                    if (!chunks.ContainsKey(pos) && (transform.GlobalPosition - Vector3.UnitZ * transform.GlobalPosition.Z - (Vector3)(pos * Chunk.size)).Length < loadDistance * Chunk.size)
                     {
                         chunks.Add(pos, new Chunk(pos));
-                        // update neighborMeshes
-                        //if (chunks.ContainsKey(pos + Vector3i.UnitX)) chunks[pos + Vector3i.UnitX].UpdateEdge(pos - Vector3i.UnitX);
-                        //if (chunks.ContainsKey(pos - Vector3i.UnitX)) chunks[pos - Vector3i.UnitX].UpdateEdge(pos + Vector3i.UnitX);
-                        //if (chunks.ContainsKey(pos + Vector3i.UnitY)) chunks[pos + Vector3i.UnitY].UpdateEdge(pos - Vector3i.UnitY);
-                        //if (chunks.ContainsKey(pos - Vector3i.UnitY)) chunks[pos - Vector3i.UnitY].UpdateEdge(pos + Vector3i.UnitY);
+                        
+                        // TODO: there should be bug when loading few chunks at the time
+                        if (chunks.ContainsKey(pos + Vector3i.UnitX)) chunkMeshUpdates.Enqueue(pos + Vector3i.UnitX);
+                        if (chunks.ContainsKey(pos - Vector3i.UnitX)) chunkMeshUpdates.Enqueue(pos - Vector3i.UnitX);
+                        if (chunks.ContainsKey(pos + Vector3i.UnitY)) chunkMeshUpdates.Enqueue(pos + Vector3i.UnitY);
+                        if (chunks.ContainsKey(pos - Vector3i.UnitY)) chunkMeshUpdates.Enqueue(pos - Vector3i.UnitY);
                     }
                 }
             }
-            foreach(Chunk chunk in chunks.Values){ chunk.Update(); }
+            // unsafe
+            if (chunkMeshUpdates.Count > 0)
+            {
+                Vector3i chunk = chunkMeshUpdates.Dequeue();
+                if (chunks.ContainsKey(chunk)) chunks[chunk].UpdateMeshes();
+                else chunkMeshUpdates.Enqueue(chunk);
+            }
+            var keys = chunks.Keys;
+            foreach (Vector3i key in keys) 
+            {
+                if ((transform.GlobalPosition - Vector3.UnitZ * transform.GlobalPosition.Z - (Vector3)(key * Chunk.size)).Length > loadDistance * Chunk.size) 
+                {
+                    chunks[key].Dispose();
+                    chunks.Remove(key);
+                }
+            }
+            
+
+            foreach (Chunk chunk in chunks.Values){ chunk.Update(); }
         }
         public void Render()
         {
@@ -83,17 +102,10 @@ namespace CavingSimulator2.GameLogic.Components
             return chunks[chunk].FullBlockExist(position);
         }
 
-        public static void UpdateEdgesOfNewChunk(Vector3i position)
-        {
-            if (chunks.ContainsKey(position + Vector3i.UnitX)) chunks[position + Vector3i.UnitX].UpdateEdge(position - Vector3i.UnitX);
-            if (chunks.ContainsKey(position - Vector3i.UnitX)) chunks[position - Vector3i.UnitX].UpdateEdge(position + Vector3i.UnitX);
 
-            if (chunks.ContainsKey(position + Vector3i.UnitY)) chunks[position + Vector3i.UnitY].UpdateEdge(position - Vector3i.UnitY);
-            if (chunks.ContainsKey(position - Vector3i.UnitY)) chunks[position - Vector3i.UnitY].UpdateEdge(position + Vector3i.UnitY);
-        }
-
-        public class Chunk
+        public class Chunk : IDisposable
         {
+            private bool disposed;
             public const int size = 16;
             public const int maxHeight = 10;
 
@@ -101,7 +113,7 @@ namespace CavingSimulator2.GameLogic.Components
             public readonly Vector3i chunkPositionOffset;
             public readonly Vector3i chunkPositionOffset1;
             private Dictionary<Vector3i, Block> blocks = new Dictionary<Vector3i, Block>();
-            private Queue<Vector3i> UpdateMeshesQueue = new Queue<Vector3i>();
+            public Dictionary<int, BlockChunkMesh> meshes = new Dictionary<int, BlockChunkMesh>();
 
 
             private bool loaded;
@@ -114,35 +126,22 @@ namespace CavingSimulator2.GameLogic.Components
                 //Task task = GenerateBlocks();
 
             }
-            public void UpdateEdge(Vector3i edge)
+            ~Chunk()
             {
-
-                switch ((edge.X, edge.Y))
-                {
-                    case (1, 0):
-                        for (int y = chunkPositionOffset.Y; y <= chunkPositionOffset1.Y; y++) for (int z = 0; z < maxHeight; z++)
-                                UpdateMeshQueue(new Vector3i(chunkPositionOffset1.X, y, z)); break;
-                    case (-1, 0):
-                        for (int y = chunkPositionOffset.Y; y <= chunkPositionOffset1.Y; y++) for (int z = 0; z < maxHeight; z++)
-                                UpdateMeshQueue(new Vector3i(chunkPositionOffset.X, y, z)); break;
-
-                    case (0, 1):
-                        for (int x = chunkPositionOffset.X; x <= chunkPositionOffset1.X; x++) for (int z = 0; z < maxHeight; z++)
-                                UpdateMeshQueue(new Vector3i(x, chunkPositionOffset1.Y, z)); break;
-                    case (0, -1):
-                        for (int x = chunkPositionOffset.X; x <= chunkPositionOffset1.X; x++) for (int z = 0; z < maxHeight; z++)
-                                UpdateMeshQueue(new Vector3i(x, chunkPositionOffset.Y, z)); break;
-                }
+                Dispose();
             }
+            
             public void Update()
             {
                 GenerateBlocks();
                 GenerateMeshes();
             }
+            public void UpdateMeshes() { meshed = false; }
 
             private void GenerateBlocks()
             {
                 if (loaded) return;
+                Random random = new Random();
                 for (int x = chunkPositionOffset.X; x < chunkPositionOffset.X + size; x++)
                 {
                     for (int y = chunkPositionOffset.Y; y < chunkPositionOffset.Y + size; y++)
@@ -152,32 +151,35 @@ namespace CavingSimulator2.GameLogic.Components
                         for (int z = 0; z <= height; z++)
                         {
                             Vector3i blockPos = new Vector3i(x, y, z);
-                            Block block = new Block() { position = blockPos, texture = Game.textures.GetIndex("grassBlock") };
+                            Block block = new Block() { position = blockPos, id = random.Next(3) };
                             blocks.Add(blockPos, block);
-                            //Instantiate(block);
                         }
                     }
                 }
-                //Console.WriteLine("Chunk:"+chunkPosition+" gen blocksC:" + blocks.Count);
                 loaded = true;
-                ChunkGenerator.UpdateEdgesOfNewChunk(chunkPosition);
             }
             private void GenerateMeshes()
             {
                 if (!loaded || meshed) return;
+                SetMeshes();
+                string neighbors;
                 foreach (Block block in blocks.Values)
                 {
-                    block.mesh = "" +
-                        (FullBlockExist(block.position + Vector3i.UnitZ) ? "0" : "1") +
-                        (FullBlockExist(block.position - Vector3i.UnitZ) ? "0" : "1") +
-                        (FullBlockExist(block.position + Vector3i.UnitX) ? "0" : "1") +
-                        (FullBlockExist(block.position - Vector3i.UnitX) ? "0" : "1") +
-                        (FullBlockExist(block.position + Vector3i.UnitY) ? "0" : "1") +
-                        (FullBlockExist(block.position - Vector3i.UnitY) ? "0" : "1");
-                    if(block.mesh != "000000") SetMeshes(block.mesh);
+                    neighbors = "";
+                    for(int z= -1; z <= 1; z++)
+                    {
+                        for (int y = -1; y <= 1; y++)
+                        {
+                            for (int x = -1; x <= 1; x++)
+                            {
+                                if(FullBlockExist(block.position + Vector3i.UnitZ * z + Vector3i.UnitY * y + Vector3i.UnitX * x)){ neighbors += "1"; }
+                                else { neighbors += "0"; }
+                            }
+                        }
+                    }
+                    block.mesh = neighbors;
                 }
                 SetRenderBuffer();
-
                 meshed = true;
             }
 
@@ -193,87 +195,110 @@ namespace CavingSimulator2.GameLogic.Components
 
 
 
-            //Queue Commands
-            public void UpdateMeshQueue(Vector3i position) { UpdateMeshesQueue.Enqueue(position); }
-
-
 
             
-            public Dictionary<string, BlockMesh> meshes = new Dictionary<string, BlockMesh>();
-            public void SetMeshes(string mesh)
+            
+
+            public void SetMeshes()
             {
-                if (!meshes.ContainsKey(mesh)) meshes.Add(mesh, new BlockMesh(mesh, false));
-                //meshes[mesh].instances++;
+                if (meshes != null) foreach (BlockChunkMesh mesh in meshes.Values) mesh.Dispose();
+                meshes.Clear();
+                for(int i = 0; i < 3 * 3 * 3; i++)
+                {
+                    if (Game.blockMeshes.meshes.ContainsKey(i))
+                        meshes.Add(i, new BlockChunkMesh(Game.blockMeshes.meshes[i].vertexBuffer));
+                }
             }
             
+
             private void SetRenderBuffer()
             {
-                //Console.WriteLine("SetRenderBuffer:" + chunkPosition + " C:" + meshes.Count);
-                foreach (BlockMesh mesh in meshes.Values)
+                foreach (int key in meshes.Keys)
                 {
-                    VertexP[] positions = blocks.Values.Where(block => block.mesh == mesh.key).Select(block => new VertexP((Vector3)block.position)).ToArray();
+                    VertexPCI[] positions = blocks.Values.
+                        Where(block => block.mesh[key] == '0').
+                        Select(block => 
+                            new VertexPCI(
+                                (Vector3)block.position ,
+                                new Color4(1f, 1f, 1f, 1f),
+                                block.id )).ToArray();
+                    if(positions.Length > 0)
+                    {
+                        meshes[key].active = true;
+                        meshes[key].instanceBuffer = new VertexBuffer(VertexPCI.VertexInfo, positions.Length, BufferUsageHint.StaticDraw);
+                        meshes[key].instanceBuffer.SetData(ref positions, positions.Length);
 
-                    mesh.positionsBuffer = new VertexBuffer(VertexP.VertexInfo, positions.Length, BufferUsageHint.StaticDraw);
-                    mesh.positionsBuffer.SetData(ref positions, positions.Length);
+                        GL.BindVertexArray(meshes[key].vertexArray.VertexArrayHandle);
+                        GL.BindBuffer(BufferTarget.ElementArrayBuffer, Game.blockMeshes.meshes[key].indexBuffer.IndexBufferHandle);
+                        GL.BindBuffer(BufferTarget.ArrayBuffer, meshes[key].instanceBuffer.VertexBufferHandle);
 
-                    GL.BindVertexArray(mesh.vertexArray.VertexArrayHandle);
-                    //GL.BindBuffer(BufferTarget.ArrayBuffer, mesh.vertexBuffer.VertexBufferHandle);
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, mesh.indexBuffer.IndexBufferHandle);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, mesh.positionsBuffer.VertexBufferHandle);
+                        GL.VertexAttribPointer(
+                            VertexPCTOT.VertexInfo.VertexAttributes[3].Index,
+                            VertexPCTOT.VertexInfo.VertexAttributes[3].ComponentCount,
+                            VertexAttribPointerType.Float, false,
+                            VertexPCI.VertexInfo.SizeInBytes,
+                            VertexPCI.VertexInfo.VertexAttributes[0].Offset);
+                        GL.EnableVertexAttribArray(VertexPCTOT.VertexInfo.VertexAttributes[3].Index);
 
-                    GL.VertexAttribPointer(
-                        VertexPCTO.VertexInfo.VertexAttributes[3].Index,
-                        VertexPCTO.VertexInfo.VertexAttributes[3].ComponentCount,
-                        VertexAttribPointerType.Float, false,
-                        VertexP.VertexInfo.SizeInBytes,
-                        VertexP.VertexInfo.VertexAttributes[0].Offset);
+                        GL.VertexAttribPointer(
+                            VertexPCTOT.VertexInfo.VertexAttributes[1].Index,
+                            VertexPCTOT.VertexInfo.VertexAttributes[1].ComponentCount,
+                            VertexAttribPointerType.Float, false,
+                            VertexPCI.VertexInfo.SizeInBytes,
+                            VertexPCI.VertexInfo.VertexAttributes[1].Offset);
+                        GL.EnableVertexAttribArray(VertexPCTOT.VertexInfo.VertexAttributes[1].Index);
 
-                    GL.EnableVertexAttribArray(VertexPCTO.VertexInfo.VertexAttributes[3].Index);
-                    GL.VertexAttribDivisor(3, 1);
-                    GL.BindVertexArray(0);
+                        GL.VertexAttribPointer(
+                            VertexPCTOT.VertexInfo.VertexAttributes[4].Index,
+                            VertexPCTOT.VertexInfo.VertexAttributes[4].ComponentCount,
+                            VertexAttribPointerType.Float, false,
+                            VertexPCI.VertexInfo.SizeInBytes,
+                            VertexPCI.VertexInfo.VertexAttributes[2].Offset);
+                        GL.EnableVertexAttribArray(VertexPCTOT.VertexInfo.VertexAttributes[4].Index);
 
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                    //Console.WriteLine("     Register mesh:" + mesh.key + " C:" + mesh.positionsBuffer.VertexCount);
+                        GL.VertexAttribDivisor(3, 1);
+                        GL.VertexAttribDivisor(1, 1);
+                        GL.VertexAttribDivisor(4, 1);
 
+
+                        GL.BindVertexArray(0);
+
+                        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    }
+                    
                 }
-
+                foreach (Block block in blocks.Values) block.mesh = "";
             }
+            
 
             
             public void InstanceRender()
             {
-                //Console.WriteLine("ChunkR :" + chunkPosition);
-                //Console.WriteLine("ChunkRC:" + meshes.Count);
-                Game.textures[Game.textures.GetIndex("grassBlock")].UploadTexture();
-                foreach (BlockMesh mesh in meshes.Values)
+                //Game.textures[Game.textures.GetIndex("grassBlock")].UploadTexture();
+                foreach (int key in meshes.Keys)
                 {
-                    //Console.WriteLine("     MeshesR Count:" + mesh.positionsBuffer.VertexCount);
-                    GL.BindVertexArray(mesh.vertexArray.VertexArrayHandle);
-                    GL.DrawElementsInstanced(PrimitiveType.Triangles, mesh.indicesCount, DrawElementsType.UnsignedInt, IntPtr.Zero, mesh.positionsBuffer.VertexCount);
-                    //GL.DrawElements(PrimitiveType.Triangles, mesh.indicesCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-                    GL.BindVertexArray(0);
+                    if (meshes[key].active)
+                    {
+                        GL.BindVertexArray(meshes[key].vertexArray.VertexArrayHandle);
+                        GL.DrawElementsInstanced(PrimitiveType.Triangles, Game.blockMeshes.meshes[key].indicesCount, DrawElementsType.UnsignedInt, IntPtr.Zero, meshes[key].instanceBuffer.VertexCount);
+                        GL.BindVertexArray(0);
+                    }
+                    
                 }
             }
-            public void Render()
-            {
-                foreach(Block block in blocks.Values)
-                {
-                    if (block.mesh == "000000") continue;
-                    Game.shaderPrograms.Current.SetUniform("Offset", block.position);
-                    if (block.texture != -1) Game.textures[block.texture].UploadTexture();
-                    GL.BindVertexArray(meshes[block.mesh].vertexArray.VertexArrayHandle);
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, meshes[block.mesh].indexBuffer.IndexBufferHandle);
-                    GL.DrawElements(PrimitiveType.Triangles, meshes[block.mesh].indicesCount, DrawElementsType.UnsignedInt, 0);
-                    GL.BindTexture(TextureTarget.Texture2D, 0);
 
-                }
+            public void Dispose()
+            {
+                if (disposed) return;
+                disposed = true;
+
+                foreach (BlockChunkMesh mesh in meshes.Values) mesh.Dispose();
             }
-            
 
             public class Block
             {
                 public Vector3i position;
-                public int texture = -1;
+                public int id = -1;
                 public string mesh = "000000";
 
             }

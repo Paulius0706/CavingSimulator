@@ -29,24 +29,44 @@ namespace CavingSimulator2.Render
             this.Texture = Texture;
         }
     }
+    public struct VertexPCI
+    {
+        public readonly Vector3 Position;
+        public readonly Color4 Color;
+        public readonly float Texture;
+
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCI), new VertexAttribute[] {
+            new VertexAttribute("Position",0,3,0),
+            new VertexAttribute("Color",1,4,3 * sizeof(float)),
+            new VertexAttribute("TextureId",2,1,7 * sizeof(float)),
+        });
+
+        public VertexPCI(Vector3 Position, Color4 Color, float Texture)
+        {
+            this.Position = Position;
+            this.Color = Color;
+            this.Texture = Texture;
+        }
+    }
     // one vertex object
-    public struct VertexPCTO
+    public struct VertexPCTOT
     {
         public readonly Vector3 Position;
         public readonly Color4 Color;
         public readonly Vector2 Texture;
         public readonly Vector3 Offset;
+        public readonly float TextureId;
 
-        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCTO), new VertexAttribute[] {
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCTOT), new VertexAttribute[] {
             new VertexAttribute("Position",0,3,0),
             new VertexAttribute("Color",1,4,3 * sizeof(float)),
             new VertexAttribute("Texture",2,2, 7 * sizeof(float)),
-            new VertexAttribute("Offset",3,3, 9 * sizeof(float))
+            new VertexAttribute("Offset",3,3, 9 * sizeof(float)),
+            new VertexAttribute("TextureId",4,1,12 * sizeof(float))
         });
-
-
-        public VertexPCTO(Vector3 Position, Color4 Color, Vector2 Texture, Vector3 Offset)
+        public VertexPCTOT(Vector3 Position, Color4 Color, Vector2 Texture, Vector3 Offset, float TextureId)
         {
+            this.TextureId = TextureId;
             this.Position = Position;
             this.Color = Color;
             this.Texture = Texture;
@@ -60,13 +80,12 @@ namespace CavingSimulator2.Render
         public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexP), new VertexAttribute[] {
             new VertexAttribute("Position",0,3,0)
         });
-
-
         public VertexP(Vector3 Position)
         {
             this.Position = Position;
         }
     }
+    
 
 
 

@@ -27,6 +27,8 @@ namespace CavingSimulator2.Debugger
             if (line < 0) throw new ArgumentException("line > 0 : current " + line);
             if (line >= lineCount) throw new ArgumentException("line < " + lineCount + " : current " + line);
             if (str == null) throw new ArgumentNullException("str");
+            //if (str.Length > lineLenght) throw new ArgumentException("str.len <" + lineLenght + " : current " + str.Length);
+
             lines[line] = str;
         }
         public void Render()
@@ -34,7 +36,13 @@ namespace CavingSimulator2.Debugger
             for (int i = 0; i < lineCount; i++) 
             {
                 Console.CursorTop = lineCursor;
-                Console.Write(lines[i]);
+                Console.CursorLeft = 0;
+                string str =
+                    Console.WindowWidth > lines[i].Length ?
+                    lines[i] + new string(' ', Console.WindowWidth - lines[i].Length) :
+                    lines[i].Substring(0, Console.WindowWidth);
+                Console.Write(str);
+                //Console.Write(lines[i] + new String(' ', Console.WindowWidth > lines[i].Length ? Console.WindowWidth - lines[i].Length : lines[i].Substring(0,Console.WindowWidth)));
             }
         }
 

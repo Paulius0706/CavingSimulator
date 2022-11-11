@@ -8,6 +8,7 @@ uniform sampler2D Texture;
 
 void main(){
 
+    //pixelColor = texture(Texture, vTexture);
     pixelColor = texture(Texture, vTexture) * vColor;
     //pixelColor = vColor;
 }
