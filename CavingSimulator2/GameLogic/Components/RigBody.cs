@@ -1,5 +1,6 @@
 ﻿using CavingSimulator2;
 using CavingSimulator2.GameLogic.Components;
+using CavingSimulator2.GameLogic.Components.Colliders;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator.GameLogic.Components
 {
-    public class RigBody : Component
+    public class RigBody
     {
         public readonly Transform transform;
+        public readonly Collider collider;
         public Vector3 velocity = Vector3.Zero;
         public Vector3 angularVelocity = Vector3.Zero;
 
@@ -20,9 +22,10 @@ namespace CavingSimulator.GameLogic.Components
         public bool enableGravity = false;
         public float gravity = 1f;
 
-        public RigBody(Transform transform)
+        public RigBody(Transform transform, Collider collider)
         {
             this.transform = transform;
+            this.collider = collider;
             this.velocity = Vector3.Zero;
             this.angularVelocity = Vector3.Zero;
             this.drag = 1f;
@@ -44,7 +47,7 @@ namespace CavingSimulator.GameLogic.Components
             velocity = GoTowards(velocity, Vector3.Zero, drag * Game.deltaTime);
             //angularVelocity -= GoTowards(angularVelocity, Vector3.Zero, angularDrag * Game.deltaTime);
 
-            //gameObject.GetComponent<Collider>().CheckCollisions();
+            collider.CheckCollisions();
         }
         public void AddVelocity(Vector3 velocity)
         {

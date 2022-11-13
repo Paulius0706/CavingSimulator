@@ -1,5 +1,7 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator.Render;
+using CavingSimulator2.GameLogic.Components.Colliders;
+using CavingSimulator2.GameLogic.Components.Noises;
 using CavingSimulator2.GameLogic.Objects;
 using CavingSimulator2.Render;
 using CavingSimulator2.Render.Meshes;
@@ -15,7 +17,7 @@ using System.Transactions;
 
 namespace CavingSimulator2.GameLogic.Components
 {
-    public class ChunkGenerator : Component
+    public class ChunkGenerator
     {
         Transform transform;
 
@@ -147,11 +149,13 @@ namespace CavingSimulator2.GameLogic.Components
                     for (int y = chunkPositionOffset.Y; y < chunkPositionOffset.Y + size; y++)
                     {
                         //if (x != chunkPositionOffset.X && x != chunkPositionOffset1.X && y != chunkPositionOffset.Y && y != chunkPositionOffset1.Y) continue;
-                        int height = (int)(ChunkGenerator.noise.GetPerlin(x, y) * 10f) + 5;
+                        //int height = (int)(ChunkGenerator.noise.GetPerlin(x, y) * 10f) + 5;
+                        int height = HeightNoise.GetHeight(x, y);
                         for (int z = 0; z <= height; z++)
                         {
                             Vector3i blockPos = new Vector3i(x, y, z);
-                            Block block = new Block() { position = blockPos, id = random.Next(3) };
+                            //random.Next(3) 
+                            Block block = new Block() { position = blockPos, id = 1 };
                             blocks.Add(blockPos, block);
                         }
                     }
@@ -220,7 +224,8 @@ namespace CavingSimulator2.GameLogic.Components
                         Select(block => 
                             new VertexPCI(
                                 (Vector3)block.position ,
-                                new Color4(1f, 1f, 1f, 1f),
+                                Game.blockMeshes.SetColor(block.mesh,key),
+                                //new Color4(1f, 1f, 1f, 1f),
                                 block.id )).ToArray();
                     if(positions.Length > 0)
                     {
@@ -233,28 +238,29 @@ namespace CavingSimulator2.GameLogic.Components
                         GL.BindBuffer(BufferTarget.ArrayBuffer, meshes[key].instanceBuffer.VertexBufferHandle);
 
                         GL.VertexAttribPointer(
-                            VertexPCTOT.VertexInfo.VertexAttributes[3].Index,
-                            VertexPCTOT.VertexInfo.VertexAttributes[3].ComponentCount,
+                            VertexPCTOTI.VertexInfo.VertexAttributes[3].Index,
+                            VertexPCTOTI.VertexInfo.VertexAttributes[3].ComponentCount,
                             VertexAttribPointerType.Float, false,
                             VertexPCI.VertexInfo.SizeInBytes,
                             VertexPCI.VertexInfo.VertexAttributes[0].Offset);
-                        GL.EnableVertexAttribArray(VertexPCTOT.VertexInfo.VertexAttributes[3].Index);
+                        GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[3].Index);
 
                         GL.VertexAttribPointer(
-                            VertexPCTOT.VertexInfo.VertexAttributes[1].Index,
-                            VertexPCTOT.VertexInfo.VertexAttributes[1].ComponentCount,
+                            VertexPCTOTI.VertexInfo.VertexAttributes[1].Index,
+                            VertexPCTOTI.VertexInfo.VertexAttributes[1].ComponentCount,
                             VertexAttribPointerType.Float, false,
                             VertexPCI.VertexInfo.SizeInBytes,
                             VertexPCI.VertexInfo.VertexAttributes[1].Offset);
-                        GL.EnableVertexAttribArray(VertexPCTOT.VertexInfo.VertexAttributes[1].Index);
+                        GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[1].Index);
 
                         GL.VertexAttribPointer(
-                            VertexPCTOT.VertexInfo.VertexAttributes[4].Index,
-                            VertexPCTOT.VertexInfo.VertexAttributes[4].ComponentCount,
+                            VertexPCTOTI.VertexInfo.VertexAttributes[4].Index,
+                            VertexPCTOTI.VertexInfo.VertexAttributes[4].ComponentCount,
                             VertexAttribPointerType.Float, false,
                             VertexPCI.VertexInfo.SizeInBytes,
                             VertexPCI.VertexInfo.VertexAttributes[2].Offset);
-                        GL.EnableVertexAttribArray(VertexPCTOT.VertexInfo.VertexAttributes[4].Index);
+                        GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[4].Index);
+
 
                         GL.VertexAttribDivisor(3, 1);
                         GL.VertexAttribDivisor(1, 1);
@@ -267,7 +273,8 @@ namespace CavingSimulator2.GameLogic.Components
                     }
                     
                 }
-                foreach (Block block in blocks.Values) block.mesh = "";
+                foreach (Block block in blocks.Values) block.mesh = null;
+
             }
             
 
@@ -299,7 +306,19 @@ namespace CavingSimulator2.GameLogic.Components
             {
                 public Vector3i position;
                 public int id = -1;
-                public string mesh = "000000";
+                public string mesh = "";
+
+
+                public static Collider ConstructBlockCollider(Vector3i position)
+                {
+                    return new Collider(
+                        new Transform(position),
+                        new Vector2(-0.5f, 0.5f),
+                        new Vector2(-0.5f, 0.5f),
+                        new Vector2(-0.5f, 0.5f),
+                        Vector3.Zero,
+                        Vector3i.One * 2);
+                }
 
             }
         }

@@ -20,7 +20,7 @@ namespace CavingSimulator2.Render
     {
         top = 0,
         right = 1,
-        foward = 2,
+        front = 2,
         left = 3,
         back = 4,
         bottom = 5
@@ -56,9 +56,10 @@ namespace CavingSimulator2.Render
 
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Nearest);
             GL.BindTexture(TextureTarget.Texture2D, 0);
         }
         ~BlockTextures()
@@ -91,7 +92,7 @@ namespace CavingSimulator2.Render
                 case (int)BlockMeshes.FaceBufferId.right: return 0;
                 case (int)BlockMeshes.FaceBufferId.left: return 0;
                 case (int)BlockMeshes.FaceBufferId.back: return 0;
-                case (int)BlockMeshes.FaceBufferId.foward: return 0;
+                case (int)BlockMeshes.FaceBufferId.front: return 0;
             }
             return 0;
         }

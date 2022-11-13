@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator.GameLogic.Components
 {
-    public class Player : Component
+    public class Player
     {
         public readonly Transform transform;
         public readonly RigBody rigBody;

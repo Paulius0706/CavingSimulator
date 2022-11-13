@@ -10,19 +10,11 @@ using CavingSimulator2.Render.Meshes;
 using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.Render;
 
-namespace CavingSimulator.Render.Meshes
+namespace CavingSimulator2.Render.Meshes.SpaceShipParts
 {
     public class BoxMesh : Mesh
     {
-        /*
-        public BoxMesh(Vector3 position) : this(position, Vector3.One, Quaternion.Identity) { }
-        public BoxMesh(Vector3 position, Vector3 scale) : this(position, scale, Quaternion.Identity) { }
-        public BoxMesh(Vector3 position, Quaternion rotation) : this(position, Vector3.One, rotation) { }
-        public BoxMesh(Vector3 position, Vector3 scale, Quaternion rotation) : base(position, scale, rotation) { }
-        */
-        
-
-        public BoxMesh() : base (){}
+        public BoxMesh() : base() { }
         public BoxMesh(Transform transform, bool stoplastAtributeBind = false) : base(transform, "", stoplastAtributeBind) { }
         public BoxMesh(Transform transform, string texture = "", bool stoplastAtributeBind = false) : base(transform, texture, stoplastAtributeBind) { }
 

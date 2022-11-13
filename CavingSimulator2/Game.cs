@@ -23,7 +23,7 @@ namespace CavingSimulator2
         public static ShaderPrograms shaderPrograms = new ShaderPrograms();
         public static Textures textures = new Textures();
         public static BlockMeshes blockMeshes;
-        public static BlockTextures blockTextures = new BlockTextures("Render/Images/Blocks.png");
+        public static BlockTextures blockTextures = new BlockTextures("Render/Images/Blocks.jpg");
 
         public static Dictionary<int, BaseObject> objects = new Dictionary<int, BaseObject>();
 
@@ -68,7 +68,7 @@ namespace CavingSimulator2
 
             // Create shaders
             Game.shaderPrograms.Add("object", new ShaderProgram("Render/Shaders/shader.vert", "Render/Shaders/shader.frag"));
-            Game.shaderPrograms.Add("block", new ShaderProgram("Render/Shaders/blockShader.vert", "Render/Shaders/shader.frag"));
+            Game.shaderPrograms.Add("block", new ShaderProgram("Render/Shaders/blockShader.vert", "Render/Shaders/blockShader.frag"));
 
 
             // set Model View Projection 
@@ -100,7 +100,7 @@ namespace CavingSimulator2
 
             // Add objects
             playerid = BaseObject.incremeter;
-            Game.objects.Add(BaseObject.incremeter, new CameraObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0, 0, 0)) ));
+            Game.objects.Add(BaseObject.incremeter, new CameraObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0, 0, 15)) ));
 
             
             Debug.Add("FPS", 0, 1);

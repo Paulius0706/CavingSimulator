@@ -31,7 +31,7 @@ namespace CavingSimulator2.Render.Meshes
 
         protected Vector3 lastPosition;
         protected Vector3 lastScale;
-        protected Quaternion lastRotation;
+        protected Vector3 lastRotation;
 
         private Matrix4 model;
 
@@ -154,7 +154,7 @@ namespace CavingSimulator2.Render.Meshes
             lastScale = this.transform.GlobalScale;
             this.model =
                 Matrix4.CreateScale(this.transform.GlobalScale)
-                * Matrix4.CreateFromQuaternion(this.transform.GlobalRotation)
+                * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.GlobalRotation))
                 * Matrix4.CreateTranslation(this.transform.GlobalPosition);
 
         }

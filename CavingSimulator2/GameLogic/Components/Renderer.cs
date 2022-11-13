@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator.GameLogic.Components
 {
-    public class Renderer : Component
+    public class Renderer
     {
         private List<Mesh> meshes = new List<Mesh>();
         public void Render()

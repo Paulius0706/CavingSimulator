@@ -30,6 +30,8 @@ namespace CavingSimulator2.GameLogic.Objects
         }
         protected virtual void AbstractDispose() { }
 
+        public virtual void CollisionTrigger(Vector3i blockPosition) { }
+
         public virtual void Render() { }
         public virtual void Update() { }
     }

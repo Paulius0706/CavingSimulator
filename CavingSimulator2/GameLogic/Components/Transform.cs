@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using CavingSimulator2.GameLogic.Objects;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,48 +12,37 @@ namespace CavingSimulator.GameLogic.Components
     public class Transform
     {
         public Transform parent;
-
+        public BaseObject baseObject;
 
 
         private Vector3 localPosition = Vector3.Zero;
-        private Quaternion localRotation = Quaternion.Identity;
+        private Vector3 localRotation = Vector3.Zero;
         private Vector3 localScale = Vector3.One;
         public List<Transform> childs = new List<Transform>();
 
-        public Transform(Vector3 position, Quaternion rotation, Vector3 scale, Transform parent)
+        public Transform(Vector3 position, Vector3 rotation, Vector3 scale, Transform parent)
         {
             this.parent = parent;
             this.LocalPosition = position;
             this.LocalRotation = rotation;
             this.LocalScale = scale;
         }
-        public Transform(Vector3 position, Quaternion rotation, Vector3 scale)
+        public Transform(Vector3 position, Vector3 rotation, Vector3 scale)
         {
             this.LocalPosition = position;
             this.LocalRotation = rotation;
             this.LocalScale = scale;
         }
-        public Transform(Vector3 position, Quaternion rotation, Transform parent)
+        public Transform(Vector3 position, Vector3 rotation, Transform parent)
         {
             this.parent = parent;
             this.LocalPosition = position;
             this.LocalRotation = rotation;
         }
-        public Transform(Vector3 position, Vector3 scale, Transform parent)
-        {
-            this.parent = parent;
-            this.LocalPosition = position;
-            this.LocalScale = scale;
-        }
-        public Transform(Vector3 position, Quaternion rotation)
+        public Transform(Vector3 position, Vector3 rotation)
         {
             this.LocalPosition = position;
             this.LocalRotation = rotation;
-        }
-        public Transform(Vector3 position, Vector3 scale)
-        {
-            this.LocalPosition = position;
-            this.LocalScale = scale;
         }
         public Transform(Vector3 position, Transform parent)
         {
@@ -70,7 +60,18 @@ namespace CavingSimulator.GameLogic.Components
             get
             {
                 if (parent == null) return localPosition;
-                return localPosition + parent.GlobalPosition; 
+                Vector3 parentGlobalRotation = parent.GlobalRotation;
+                return new Vector3( 
+                    new Vector4(parent.GlobalPosition, 1) + 
+                    new Vector4(localPosition,1) * 
+                    Matrix4.CreateFromQuaternion(
+                        new Quaternion(
+                            MathHelper.DegreesToRadians(parentGlobalRotation.X),
+                            MathHelper.DegreesToRadians(parentGlobalRotation.Y),
+                            MathHelper.DegreesToRadians(parentGlobalRotation.Z),
+                            1)
+                        )
+                    ); 
             }
             set
             {
@@ -78,10 +79,18 @@ namespace CavingSimulator.GameLogic.Components
                 else localPosition = value - parent.GlobalPosition;
             }
         }
-        public Quaternion GlobalRotation
+        public Vector3 GlobalRotation
         {
-            get { return LocalRotation; }
-            set { LocalRotation = value; }
+            get 
+            {
+                if (parent == null) return localRotation;
+                return  parent.GlobalRotation + localRotation;
+            }
+            set 
+            {
+                if (parent is null) localPosition = value;
+                else localRotation = value - parent.localRotation;
+            }
         }
         public Vector3 GlobalScale
         {
@@ -102,7 +111,7 @@ namespace CavingSimulator.GameLogic.Components
             get { return localScale; }
             set { localScale = value; }
         }
-        public Quaternion LocalRotation
+        public Vector3 LocalRotation
         {
             get { return localRotation; }
             set { localRotation = value; }

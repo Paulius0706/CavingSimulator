@@ -1,7 +1,9 @@
 ﻿using CavingSimulator.GameLogic.Components;
-using CavingSimulator.Render.Meshes;
 using CavingSimulator2.GameLogic.Components;
+using CavingSimulator2.GameLogic.Components.Colliders;
 using CavingSimulator2.Render.Meshes;
+using CavingSimulator2.Render.Meshes.SpaceShipParts;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +16,7 @@ namespace CavingSimulator2.GameLogic.Objects
     {
         public Transform transform;
         Renderer renderer;
+        Collider collider;
         RigBody rigBody;
         Player player;
         public ChunkGenerator chunkGenerator;
@@ -21,11 +24,20 @@ namespace CavingSimulator2.GameLogic.Objects
         public CameraObject(Transform transform) : base()
         {
             this.transform = transform;
+            this.transform.baseObject = this;
 
             this.renderer = new Renderer();
             this.renderer.AddMesh(new BoxMesh(transform, "container"));
+            this.collider = new Collider( 
+                transform,
+                new Vector2(-0.5f, 0.5f),
+                new Vector2(-0.5f, 0.5f),
+                new Vector2(-0.5f, 0.5f),
+                Vector3.Zero,
+                Vector3i.One * 2);
 
-            this.rigBody = new RigBody(transform);
+            this.rigBody = new RigBody(transform,collider);
+            this.collider.rigBody = this.rigBody;
 
             this.player = new Player(transform, rigBody);
 
