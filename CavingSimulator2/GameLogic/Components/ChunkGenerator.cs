@@ -1,6 +1,5 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator.Render;
-using CavingSimulator2.GameLogic.Components.Colliders;
 using CavingSimulator2.GameLogic.Components.Noises;
 using CavingSimulator2.GameLogic.Objects;
 using CavingSimulator2.Render;
@@ -155,7 +154,7 @@ namespace CavingSimulator2.GameLogic.Components
                         {
                             Vector3i blockPos = new Vector3i(x, y, z);
                             //random.Next(3) 
-                            Block block = new Block() { position = blockPos, id = 1 };
+                            Block block = new Block() { position = blockPos, id = random.Next(3) };
                             blocks.Add(blockPos, block);
                         }
                     }
@@ -307,18 +306,6 @@ namespace CavingSimulator2.GameLogic.Components
                 public Vector3i position;
                 public int id = -1;
                 public string mesh = "";
-
-
-                public static Collider ConstructBlockCollider(Vector3i position)
-                {
-                    return new Collider(
-                        new Transform(position),
-                        new Vector2(-0.5f, 0.5f),
-                        new Vector2(-0.5f, 0.5f),
-                        new Vector2(-0.5f, 0.5f),
-                        Vector3.Zero,
-                        Vector3i.One * 2);
-                }
 
             }
         }

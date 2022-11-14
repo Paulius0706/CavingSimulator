@@ -1,5 +1,7 @@
-﻿using CavingSimulator2;
+﻿using BepuPhysics;
+using CavingSimulator2;
 using CavingSimulator2.GameLogic.Components;
+using CavingSimulator2.GameLogic.Components.Physics;
 using CavingSimulator2.Helpers;
 using CavingSimulator2.Render;
 using OpenTK.Mathematics;
@@ -49,13 +51,19 @@ namespace CavingSimulator.GameLogic.Components
             Vector3 velocityTarget =
                 Inputs.MovementPlane.X * Vector3.Normalize(Vector3.Cross(Camera.lookToPoint, Camera.up)) +
                 Inputs.MovementPlane.Y * Vector3.Normalize(Camera.lookToPoint - Inputs.MovementPlane.Y * Camera.lookToPoint.Z * Vector3.UnitZ);
-            velocityTarget.Z = 0; 
+            velocityTarget.Z = 0;
 
-            if (velocityTarget != Vector3.Zero)
+            if (velocityTarget != Vector3.Zero && rigBody != null)
             {
-                rigBody.velocity += RigBody.GoTowordsDelta(rigBody.velocity, velocityTarget * maxSpeed, (acceleration + rigBody.drag) * Game.deltaTime);
+                BodyReference ddd = Game.physicsSpace.Bodies[rigBody.dynamicBody.bodyHandle];
+                ddd.Awake = true;
+
+                rigBody.dynamicBody.AddVelocity(RigBody.GoTowordsDelta(rigBody.dynamicBody.GetVelocity(), velocityTarget * maxSpeed, acceleration * Game.deltaTime));
             }
-            if (Inputs.JumpCrouchAxis != 0) { rigBody.velocity += RigBody.GoTowordsDelta(rigBody.velocity, Inputs.JumpCrouchAxis * Camera.up * maxSpeed, (acceleration + rigBody.drag) * Game.deltaTime); }
+            if (Inputs.JumpCrouchAxis != 0 && rigBody != null) 
+            {
+                rigBody.dynamicBody.AddVelocity(RigBody.GoTowordsDelta(rigBody.dynamicBody.GetVelocity(), Inputs.JumpCrouchAxis * Camera.up * maxSpeed, acceleration * Game.deltaTime));
+            }
         }
     }
 }

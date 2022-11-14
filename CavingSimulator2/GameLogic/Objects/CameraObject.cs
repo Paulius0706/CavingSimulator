@@ -1,6 +1,5 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components;
-using CavingSimulator2.GameLogic.Components.Colliders;
 using CavingSimulator2.Render.Meshes;
 using CavingSimulator2.Render.Meshes.SpaceShipParts;
 using OpenTK.Mathematics;
@@ -16,8 +15,8 @@ namespace CavingSimulator2.GameLogic.Objects
     {
         public Transform transform;
         Renderer renderer;
-        Collider collider;
-        RigBody rigBody;
+        //Collider collider;
+        GameLogic.Components.Physics.RigBody rigBody;
         Player player;
         public ChunkGenerator chunkGenerator;
 
@@ -28,20 +27,21 @@ namespace CavingSimulator2.GameLogic.Objects
 
             this.renderer = new Renderer();
             this.renderer.AddMesh(new BoxMesh(transform, "container"));
-            this.collider = new Collider( 
-                transform,
-                new Vector2(-0.5f, 0.5f),
-                new Vector2(-0.5f, 0.5f),
-                new Vector2(-0.5f, 0.5f),
-                Vector3.Zero,
-                Vector3i.One * 2);
+            //this.collider = new Collider( 
+            //    transform,
+            //    new Vector2(-0.5f, 0.5f),
+            //    new Vector2(-0.5f, 0.5f),
+            //    new Vector2(-0.5f, 0.5f),
+            //    Vector3.Zero,
+            //    Vector3i.One * 2);
 
-            this.rigBody = new RigBody(transform,collider);
-            this.collider.rigBody = this.rigBody;
+            this.rigBody = new GameLogic.Components.Physics.RigBody(this.transform, Vector3.One, 1, new Vector3i(5, 5, 5));
+            //this.rigBody = new RigBody(transform,collider);
+            //this.collider.rigBody = this.rigBody;
 
-            this.player = new Player(transform, rigBody);
+            this.player = new Player(this.transform, this.rigBody);
 
-            this.chunkGenerator = new ChunkGenerator(transform);
+            this.chunkGenerator = new ChunkGenerator(this.transform);
         }
 
         public override void Render()

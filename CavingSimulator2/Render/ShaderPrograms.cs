@@ -27,7 +27,7 @@ namespace CavingSimulator2.Render
         }
         public void Add(string name, ShaderProgram shaderProgram) { shaderPrograms.Add(name, shaderProgram);}
         public bool ContainsKey(string key) { return shaderPrograms.ContainsKey(key); }
-        public void Remove(string key) { shaderPrograms.Remove(key); }
+        public void Remove(string key) { shaderPrograms[key].Dispose(); shaderPrograms.Remove(key); }
 
 
 

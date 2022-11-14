@@ -13,6 +13,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BepuPhysics;
+using BepuUtilities.Memory;
+using BepuPhysics.CollisionDetection;
+using CavingSimulator2.Physics;
+using CavingSimulator2.Helpers;
+using BepuUtilities;
 
 namespace CavingSimulator2
 {
@@ -26,6 +32,8 @@ namespace CavingSimulator2
         public static BlockTextures blockTextures = new BlockTextures("Render/Images/Blocks.jpg");
 
         public static Dictionary<int, BaseObject> objects = new Dictionary<int, BaseObject>();
+        public static Simulation physicsSpace;
+        public static BufferPool bufferPool = new BufferPool();
 
         public static KeyboardState input;
         public static MouseState mouse;
@@ -37,6 +45,7 @@ namespace CavingSimulator2
         private int fpsCounter = 0;
         private float second = 0;
         private int playerid = -1;
+        private ThreadDispatcher threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
 
         public Game(int width, int height, string title) : base(
             GameWindowSettings.Default,
@@ -58,11 +67,19 @@ namespace CavingSimulator2
         protected override void OnLoad()
         {
             this.IsVisible = true;
-
+            // Set default color
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
+            // Create Physics
+            physicsSpace = Simulation.Create(
+                Game.bufferPool, 
+                new NarrowPhaseCallbacks(), 
+                new PoseIntegratorCallbacks(Adapter.Convert(new Vector3(0, 0, -1))), new SolveDescription(2, 1));
+
+            // Create block meshes for instance rendering
             Game.blockMeshes =  new BlockMeshes();
 
+            // Set inputs
             Game.input = KeyboardState;
             Game.mouse = MouseState;
 
@@ -71,20 +88,21 @@ namespace CavingSimulator2
             Game.shaderPrograms.Add("block", new ShaderProgram("Render/Shaders/blockShader.vert", "Render/Shaders/blockShader.frag"));
 
 
-            // set Model View Projection 
+            // Set Model View Projection 
             int[] viewport = new int[4];
             GL.GetInteger(GetPName.Viewport, viewport);
             Matrix4 model = Matrix4.Identity;
             Matrix4 view = Matrix4.LookAt(Camera.position, Camera.position + Camera.lookToPoint, Camera.up); ;
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90.0f), (float)viewport[2] / (float)viewport[3], 0.1f, 1000.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(OpenTK.Mathematics.MathHelper.DegreesToRadians(90.0f), (float)viewport[2] / (float)viewport[3], 0.1f, 1000.0f);
 
-            // Add Model View Projection to shaders
+            // Add Model View Projection to object shader
             Game.shaderPrograms.UseProgram("object");
             Game.shaderPrograms.Current.SetUniform("Model", ref model);
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
             Game.shaderPrograms.UnUseProgram();
 
+            // Add MeshSize View Projection to object shader
             Game.shaderPrograms.UseProgram("block");
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
@@ -98,14 +116,15 @@ namespace CavingSimulator2
             // Set CameraPosition
             Camera.position = new Vector3(0, -1, 0f);
 
-            // Add objects
+            // Add objects 
             playerid = BaseObject.incremeter;
-            Game.objects.Add(BaseObject.incremeter, new CameraObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0, 0, 15)) ));
+            Game.objects.Add(BaseObject.incremeter, new CameraObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0.5f, 0.5f, 30f)) ));
 
-            
+            // Add interactive console
             Debug.Add("FPS", 0, 1);
             Debug.Add("LoadedChunkCount", 1, 1 );
-            Debug.Add("PlayerPosition", 2, 1);
+            Debug.Add("StaticsCount", 2, 1);
+            Debug.Add("PlayerPosition", 3, 1);
 
             base.OnLoad();
         }
@@ -113,6 +132,13 @@ namespace CavingSimulator2
         {
 
             //Game.objectShader?.Dispose();
+            physicsSpace.Dispose();
+            threadDispatcher.Dispose();
+            bufferPool.Clear();
+            foreach (BaseObject baseObject in objects.Values) baseObject.Dispose();
+            shaderPrograms.UnUseProgram();
+            shaderPrograms.Remove("object");
+            shaderPrograms.Remove("block");
             base.OnUnload();
         }
 
@@ -122,6 +148,7 @@ namespace CavingSimulator2
             Game.cursorState = CursorState;
             Game.mouse = MouseState;
             Game.deltaTime = ((float)e.Time);
+            Game.physicsSpace.Timestep(Game.deltaTime, this.threadDispatcher);
 
             ///////////////////////UPDATE//////////////////////////////
 
@@ -139,10 +166,11 @@ namespace CavingSimulator2
                 (double)(Game.objects[playerid] as CameraObject).transform.GlobalPosition.X,
                 (double)(Game.objects[playerid] as CameraObject).transform.GlobalPosition.Y,
                 (double)(Game.objects[playerid] as CameraObject).transform.GlobalPosition.Z));
+            Debug.WriteLine("StaticsCount", 0, "StaticsCount: " + Game.physicsSpace.Statics.Count);
             Debug.WriteLine("LoadedChunkCount", 0, "Loaded Chunks:" + ChunkGenerator.chunks.Count);
-            //Debug.WriteLine("FPS", 0, "FPS:" + (1f / Game.deltaTime));
 
             /////////////////////////////////////////////////////
+            
             Camera.Update();
             CursorState = Game.cursorState;
 

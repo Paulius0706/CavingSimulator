@@ -88,7 +88,7 @@ namespace CavingSimulator.GameLogic.Components
             }
             set 
             {
-                if (parent is null) localPosition = value;
+                if (parent is null) localRotation = value;
                 else localRotation = value - parent.localRotation;
             }
         }
