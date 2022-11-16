@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator.GameLogic.Components
 {
-    public class Renderer
+    public class Renderer : IDisposable
     {
         private List<Mesh> meshes = new List<Mesh>();
         public void Render()
@@ -22,5 +22,9 @@ namespace CavingSimulator.GameLogic.Components
         public void UpdateMesh(int i, Mesh mesh) { meshes[i] = mesh; }
         public void ClearMesh(){meshes.Clear();}
 
+        public void Dispose()
+        {
+            foreach(Mesh mesh in meshes) mesh.Dispose();
+        }
     }
 }

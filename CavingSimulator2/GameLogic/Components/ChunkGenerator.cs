@@ -41,7 +41,7 @@ namespace CavingSimulator2.GameLogic.Components
         public void Update()
         {
             //Console.WriteLine(chunks.Count);
-            targetChunk = getTargetChunk(transform.GlobalPosition);
+            targetChunk = getTargetChunk(transform.Position);
             //Console.WriteLine(targetChunk + " " + gameObject.Transform.GlobalPosition);
             for (int x = -loadDistance; x <= loadDistance; x++)
             {
@@ -49,7 +49,7 @@ namespace CavingSimulator2.GameLogic.Components
                 {
                     Vector3i pos = new Vector3i((int)targetChunk.X + x, (int)targetChunk.Y + y, 0);
                     
-                    if (!chunks.ContainsKey(pos) && (transform.GlobalPosition - Vector3.UnitZ * transform.GlobalPosition.Z - (Vector3)(pos * Chunk.size)).Length < loadDistance * Chunk.size)
+                    if (!chunks.ContainsKey(pos) && (transform.Position - Vector3.UnitZ * transform.Position.Z - (Vector3)(pos * Chunk.size)).Length < loadDistance * Chunk.size)
                     {
                         chunks.Add(pos, new Chunk(pos));
                         
@@ -71,7 +71,7 @@ namespace CavingSimulator2.GameLogic.Components
             var keys = chunks.Keys;
             foreach (Vector3i key in keys) 
             {
-                if ((transform.GlobalPosition - Vector3.UnitZ * transform.GlobalPosition.Z - (Vector3)(key * Chunk.size)).Length > loadDistance * Chunk.size) 
+                if ((transform.Position - Vector3.UnitZ * transform.Position.Z - (Vector3)(key * Chunk.size)).Length > loadDistance * Chunk.size) 
                 {
                     chunks[key].Dispose();
                     chunks.Remove(key);

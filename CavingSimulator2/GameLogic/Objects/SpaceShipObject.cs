@@ -1,5 +1,6 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components;
+using CavingSimulator2.GameLogic.Components.Physics;
 using CavingSimulator2.Render.Meshes;
 using CavingSimulator2.Render.Meshes.SpaceShipParts;
 using OpenTK.Mathematics;
@@ -11,37 +12,34 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.GameLogic.Objects
 {
-    public class CameraObject : BaseObject
+    public class SpaceShipObject : BaseObject
     {
         public Transform transform;
         Renderer renderer;
-        //Collider collider;
-        GameLogic.Components.Physics.RigBody rigBody;
+        RigBody rigBody;
         Player player;
         public ChunkGenerator chunkGenerator;
 
-        public CameraObject(Transform transform) : base()
+        public SpaceShipObject(Transform transform) : base()
         {
             this.transform = transform;
             this.transform.baseObject = this;
 
-            this.renderer = new Renderer();
-            this.renderer.AddMesh(new BoxMesh(transform, "container"));
-            //this.collider = new Collider( 
-            //    transform,
-            //    new Vector2(-0.5f, 0.5f),
-            //    new Vector2(-0.5f, 0.5f),
-            //    new Vector2(-0.5f, 0.5f),
-            //    Vector3.Zero,
-            //    Vector3i.One * 2);
+            
+            Transform childTransform = new Transform(new Vector3(1f, 1f, 1f) + transform.Position); // + transform.Position
 
-            this.rigBody = new GameLogic.Components.Physics.RigBody(this.transform, Vector3.One, 1, new Vector3i(5, 5, 5));
-            //this.rigBody = new RigBody(transform,collider);
-            //this.collider.rigBody = this.rigBody;
+
+            this.rigBody = new RigBody(this.transform, Vector3.One, 1, new Vector3i(2, 2, 2));
+            //transform.Body = this.rigBody.dynamicBody.GetBodyReference();
+            this.rigBody.AddChildren(new Vector3(1f,0f,0f), childTransform, Vector3.One, 1);
+            
 
             this.player = new Player(this.transform, this.rigBody);
-
             this.chunkGenerator = new ChunkGenerator(this.transform);
+
+            this.renderer = new Renderer();
+            this.renderer.AddMesh(new BoxMesh(transform, "container"));
+            this.renderer.AddMesh(new BoxMesh(childTransform, "container"));
         }
 
         public override void Render()
@@ -50,6 +48,10 @@ namespace CavingSimulator2.GameLogic.Objects
             if (Game.shaderPrograms.Use == "object") renderer.Render();
             if (Game.shaderPrograms.Use == "block") chunkGenerator.Render();
         }
+        public void AddComponent(Vector3i offset)
+        {
+            
+        }
         public override void Update()
         {
             base.Update();
@@ -57,6 +59,8 @@ namespace CavingSimulator2.GameLogic.Objects
             player.Update();
             chunkGenerator.Update();
         }
+
+        public override bool TryGetRigBody(out RigBody rigBody) { rigBody = this.rigBody; return true; }
 
     }
 }

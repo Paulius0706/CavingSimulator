@@ -21,7 +21,7 @@ namespace CavingSimulator.GameLogic.Components
         public readonly RigBody rigBody;
         public float acceleration = 25f;
         public float viewSensitivity = 0.01f;
-        public float maxSpeed = 25f;
+        public float maxSpeed = 15f;
 
         public bool lockMouse = false;
 
@@ -33,7 +33,7 @@ namespace CavingSimulator.GameLogic.Components
         public void Update() 
         {
             Movement();
-            Camera.position = transform.GlobalPosition - Camera.lookToPoint * 5f;
+            Camera.position = transform.Position - Camera.lookToPoint * 5f;
         }
         public void Movement()
         {
@@ -55,14 +55,11 @@ namespace CavingSimulator.GameLogic.Components
 
             if (velocityTarget != Vector3.Zero && rigBody != null)
             {
-                BodyReference ddd = Game.physicsSpace.Bodies[rigBody.dynamicBody.bodyHandle];
-                ddd.Awake = true;
-
-                rigBody.dynamicBody.AddVelocity(RigBody.GoTowordsDelta(rigBody.dynamicBody.GetVelocity(), velocityTarget * maxSpeed, acceleration * Game.deltaTime));
+                rigBody.LinearVelocity += (RigBody.GoTowordsDelta(rigBody.LinearVelocity, velocityTarget * maxSpeed, acceleration * Game.deltaTime));
             }
             if (Inputs.JumpCrouchAxis != 0 && rigBody != null) 
             {
-                rigBody.dynamicBody.AddVelocity(RigBody.GoTowordsDelta(rigBody.dynamicBody.GetVelocity(), Inputs.JumpCrouchAxis * Camera.up * maxSpeed, acceleration * Game.deltaTime));
+                rigBody.LinearVelocity += (RigBody.GoTowordsDelta(rigBody.LinearVelocity, Inputs.JumpCrouchAxis * Camera.up * maxSpeed, acceleration * Game.deltaTime));
             }
         }
     }

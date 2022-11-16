@@ -19,6 +19,10 @@ using BepuPhysics.CollisionDetection;
 using CavingSimulator2.Physics;
 using CavingSimulator2.Helpers;
 using BepuUtilities;
+using CavingSimulator2.GameLogic.Components.Physics;
+using BepuPhysics.Collidables;
+using CavingSimulator.GameLogic.Components;
+using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
 
 namespace CavingSimulator2
 {
@@ -34,6 +38,8 @@ namespace CavingSimulator2
         public static Dictionary<int, BaseObject> objects = new Dictionary<int, BaseObject>();
         public static Simulation physicsSpace;
         public static BufferPool bufferPool = new BufferPool();
+        public static TimeStepper timeStepper = new TimeStepper();
+        public static Shapes shapes; 
 
         public static KeyboardState input;
         public static MouseState mouse;
@@ -45,7 +51,7 @@ namespace CavingSimulator2
         private int fpsCounter = 0;
         private float second = 0;
         private int playerid = -1;
-        private ThreadDispatcher threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
+        private ThreadDispatcher threadDispatcher = new ThreadDispatcher(Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1));
 
         public Game(int width, int height, string title) : base(
             GameWindowSettings.Default,
@@ -70,12 +76,16 @@ namespace CavingSimulator2
             // Set default color
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
+            Game.shapes = new Shapes(Game.bufferPool, 200);
             // Create Physics
-            physicsSpace = Simulation.Create(
-                Game.bufferPool, 
-                new NarrowPhaseCallbacks(), 
-                new PoseIntegratorCallbacks(Adapter.Convert(new Vector3(0, 0, -1))), new SolveDescription(2, 1));
+            //Game.physicsSpace = Simulation.Create(
+            //    Game.bufferPool, 
+            //    new NarrowPhaseCallbacks(),
+            //    new PoseIntegratorCallbacks(Adapter.Convert(new Vector3(0f, 0f, -10f))), timeStepper, 8);
+            ////new PoseIntegratorCallbacks(Adapter.Convert(new Vector3(0f, 0f, -10f))), new SolveDescription(2, 1));
 
+            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -1f)), new PositionLastTimestepper());
+            Game.physicsSpace.Timestep(0.1f);
             // Create block meshes for instance rendering
             Game.blockMeshes =  new BlockMeshes();
 
@@ -118,20 +128,20 @@ namespace CavingSimulator2
 
             // Add objects 
             playerid = BaseObject.incremeter;
-            Game.objects.Add(BaseObject.incremeter, new CameraObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0.5f, 0.5f, 30f)) ));
+            //Game.objects.Add(BaseObject.incremeter, new SpaceShipObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0.5f, 0.5f, 60f+300f)) ));
+            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0.5f, 0.5f, 60f))));
 
             // Add interactive console
             Debug.Add("FPS", 0, 1);
             Debug.Add("LoadedChunkCount", 1, 1 );
             Debug.Add("StaticsCount", 2, 1);
-            Debug.Add("PlayerPosition", 3, 1);
+            Debug.Add("BlocksClollidersCount", 3, 1);
+            Debug.Add("PlayerPosition", 4, 1);
 
             base.OnLoad();
         }
         protected override void OnUnload()
         {
-
-            //Game.objectShader?.Dispose();
             physicsSpace.Dispose();
             threadDispatcher.Dispose();
             bufferPool.Clear();
@@ -148,30 +158,34 @@ namespace CavingSimulator2
             Game.cursorState = CursorState;
             Game.mouse = MouseState;
             Game.deltaTime = ((float)e.Time);
-            Game.physicsSpace.Timestep(Game.deltaTime, this.threadDispatcher);
+            Game.physicsSpace.Timestepper.Timestep(Game.physicsSpace, Game.deltaTime, threadDispatcher);
+            Game.physicsSpace.Timestep(Game.deltaTime, threadDispatcher);
+            //Game.physicsSpace.Timestep(Game.deltaTime, this.threadDispatcher);
 
             ///////////////////////UPDATE//////////////////////////////
 
             foreach (BaseObject baseObject in objects.Values) baseObject.Update();
 
-            fpsCounter++;
-            second += Game.deltaTime;
+            this.fpsCounter++;
+            this.second += Game.deltaTime;
             if(second > 1f) 
             {
                 Debug.WriteLine("FPS", 0, "FPS:" + fpsCounter);
-                second = 0f;
-                fpsCounter = 0;
+                this.second = 0f;
+                this.fpsCounter = 0;
             }
             Debug.WriteLine("PlayerPosition", 0, String.Format("Player Position: {0,8:F2} {1,8:F2} {2,8:F2}", 
-                (double)(Game.objects[playerid] as CameraObject).transform.GlobalPosition.X,
-                (double)(Game.objects[playerid] as CameraObject).transform.GlobalPosition.Y,
-                (double)(Game.objects[playerid] as CameraObject).transform.GlobalPosition.Z));
-            Debug.WriteLine("StaticsCount", 0, "StaticsCount: " + Game.physicsSpace.Statics.Count);
+                (double)(Game.objects[playerid] as PlayerCabin).transform.Position.X,
+                (double)(Game.objects[playerid] as PlayerCabin).transform.Position.Y,
+                (double)(Game.objects[playerid] as PlayerCabin).transform.Position.Z));
+            Debug.WriteLine("StaticsCount", 0, "StaticsCount: " + BlocksDir.colliderBlocks.Count);
             Debug.WriteLine("LoadedChunkCount", 0, "Loaded Chunks:" + ChunkGenerator.chunks.Count);
+            Debug.WriteLine("BlocksClollidersCount", 0, "BlocksClollidersCount:" + BlocksDir.colliderBlocks.Count);
 
             /////////////////////////////////////////////////////
             
             Camera.Update();
+            BlocksDir.Update();
             CursorState = Game.cursorState;
 
             base.OnUpdateFrame(e);

@@ -1,4 +1,5 @@
 ﻿
+using CavingSimulator2.GameLogic.Components.Physics;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -34,5 +35,7 @@ namespace CavingSimulator2.GameLogic.Objects
 
         public virtual void Render() { }
         public virtual void Update() { }
+
+        public virtual bool TryGetRigBody(out RigBody rigBody) { rigBody = null; return false; }
     }
 }

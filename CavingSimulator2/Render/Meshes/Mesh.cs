@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.Render.Meshes
 {
-    public abstract class Mesh
+    public abstract class Mesh : IDisposable
     {
         public int texture = -1;
         protected VertexArray vertexArray;
@@ -147,15 +147,15 @@ namespace CavingSimulator2.Render.Meshes
         private void UpdateRender()
         {
 
-            if (this.transform.GlobalPosition == lastPosition && this.transform.GlobalRotation == lastRotation && this.transform.GlobalScale == lastScale) return;
+            if (this.transform.Position == lastPosition && this.transform.Rotation == lastRotation && this.transform.Scale == lastScale) return;
             //Console.WriteLine("BlockPos" + transform.GlobalPosition);
-            lastPosition = this.transform.GlobalPosition;
-            lastRotation = this.transform.GlobalRotation;
-            lastScale = this.transform.GlobalScale;
+            lastPosition = this.transform.Position;
+            lastRotation = this.transform.Rotation;
+            lastScale = this.transform.Scale;
             this.model =
-                Matrix4.CreateScale(this.transform.GlobalScale)
-                * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.GlobalRotation))
-                * Matrix4.CreateTranslation(this.transform.GlobalPosition);
+                Matrix4.CreateScale(this.transform.Scale)
+                * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.Rotation))
+                * Matrix4.CreateTranslation(this.transform.Position);
 
         }
 

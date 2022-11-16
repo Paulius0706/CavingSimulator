@@ -1,4 +1,7 @@
-﻿using CavingSimulator2.GameLogic.Objects;
+﻿using BepuPhysics;
+using CavingSimulator2.GameLogic.Components.Physics;
+using CavingSimulator2.GameLogic.Objects;
+using CavingSimulator2.Helpers;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -11,110 +14,80 @@ namespace CavingSimulator.GameLogic.Components
 {
     public class Transform
     {
-        public Transform parent;
+        private bool haveBody;
+        private BodyReference body;
         public BaseObject baseObject;
 
 
-        private Vector3 localPosition = Vector3.Zero;
-        private Vector3 localRotation = Vector3.Zero;
-        private Vector3 localScale = Vector3.One;
+        private Vector3 position = Vector3.Zero;
+        private Vector3 rotation = Vector3.Zero;
+        private Vector3 scale = Vector3.One;
         public List<Transform> childs = new List<Transform>();
 
         public Transform(Vector3 position, Vector3 rotation, Vector3 scale, Transform parent)
         {
-            this.parent = parent;
-            this.LocalPosition = position;
-            this.LocalRotation = rotation;
-            this.LocalScale = scale;
+            this.position = position;
+            this.rotation = rotation;
+            this.scale = scale;
         }
         public Transform(Vector3 position, Vector3 rotation, Vector3 scale)
         {
-            this.LocalPosition = position;
-            this.LocalRotation = rotation;
-            this.LocalScale = scale;
+            this.position = position;
+            this.rotation = rotation;
+            this.scale = scale;
         }
         public Transform(Vector3 position, Vector3 rotation, Transform parent)
         {
-            this.parent = parent;
-            this.LocalPosition = position;
-            this.LocalRotation = rotation;
+            this.position = position;
+            this.rotation = rotation;
         }
         public Transform(Vector3 position, Vector3 rotation)
         {
-            this.LocalPosition = position;
-            this.LocalRotation = rotation;
+            this.position = position;
+            this.rotation = rotation;
         }
         public Transform(Vector3 position, Transform parent)
         {
-            this.parent = parent;
-            this.LocalPosition = position;
+            this.position = position;
         }
         public Transform(Vector3 position)
         {
-            this.LocalPosition = position;
+            this.position = position;
         }
 
 
-        public Vector3 GlobalPosition
+        public Vector3 Position
         {
             get
             {
-                if (parent == null) return localPosition;
-                Vector3 parentGlobalRotation = parent.GlobalRotation;
-                return new Vector3( 
-                    new Vector4(parent.GlobalPosition, 1) + 
-                    new Vector4(localPosition,1) * 
-                    Matrix4.CreateFromQuaternion(
-                        new Quaternion(
-                            MathHelper.DegreesToRadians(parentGlobalRotation.X),
-                            MathHelper.DegreesToRadians(parentGlobalRotation.Y),
-                            MathHelper.DegreesToRadians(parentGlobalRotation.Z),
-                            1)
-                        )
-                    ); 
+                if (haveBody) return Adapter.Convert(body.Pose.Position);
+                return position;
             }
             set
             {
-                if (parent is null) localPosition = value;
-                else localPosition = value - parent.GlobalPosition;
+                position = value;
             }
         }
-        public Vector3 GlobalRotation
+        public Vector3 Rotation
         {
-            get 
+            get
             {
-                if (parent == null) return localRotation;
-                return  parent.GlobalRotation + localRotation;
+                if (haveBody) return Adapter.Convert(body.Pose.Orientation).ToEulerAngles();
+                return rotation;
             }
-            set 
+            set
             {
-                if (parent is null) localRotation = value;
-                else localRotation = value - parent.localRotation;
+                rotation = value;
             }
         }
-        public Vector3 GlobalScale
+        public BodyReference Body
         {
-            get { return LocalScale; }
-            set { LocalScale = value; }
+            set { body = value; haveBody = true; }
         }
-
-
-
-        public Vector3 LocalPosition
+        public Vector3 Scale
         {
-            get { return localPosition;}
-            set { localPosition = value;}
-        }
-
-        public Vector3 LocalScale
-        {
-            get { return localScale; }
-            set { localScale = value; }
-        }
-        public Vector3 LocalRotation
-        {
-            get { return localRotation; }
-            set { localRotation = value; }
+            get { return scale; }
+            set { scale = value; }
         }
 
     }

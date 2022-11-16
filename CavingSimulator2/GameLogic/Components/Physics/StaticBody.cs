@@ -15,7 +15,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
     {
         
         public readonly Transform transform;
-        public readonly BodyHandle bodyHandle;
+        private StaticHandle staticHandle;
 
         private ShapeType shapeType;
 
@@ -25,7 +25,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             this.transform = transform;
             if (!ShapesDir.sphereShapes.ContainsKey(radius)) ShapesDir.sphereShapes.Add(radius, Game.physicsSpace.Shapes.Add(new Sphere(radius)));
 
-            Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.GlobalPosition), ShapesDir.sphereShapes[radius]));
+            this.staticHandle = Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), new CollidableDescription(ShapesDir.sphereShapes[radius], radius)));
         }
         public StaticBody(Transform transform, Vector3 size)
         {
@@ -33,16 +33,24 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             this.transform = transform;
             if (!ShapesDir.boxShapes.ContainsKey(size)) ShapesDir.boxShapes.Add(size, Game.physicsSpace.Shapes.Add(new Box(size.X,size.Y,size.Z)));
 
-            Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.GlobalPosition), ShapesDir.boxShapes[size]));
+            Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), new CollidableDescription(ShapesDir.boxShapes[size], size.Length)));
         }
-        public Vector3 GetPosition()
+        public void Remove()
         {
-            return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Pose.Position);
-        }
-        public Vector3 GetRotation()
-        {
-            return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation).ToEulerAngles();
+            if(Game.physicsSpace.Statics.StaticExists(staticHandle))
+            Game.physicsSpace.Statics.Remove(staticHandle);
         }
 
+
+        public Vector3 Position
+        {
+            get { return Adapter.Convert(Game.physicsSpace.Statics.GetStaticReference(this.staticHandle).Pose.Position); }
+            set { Game.physicsSpace.Statics.GetStaticReference(this.staticHandle).Pose.Position = Adapter.Convert(value); }
+        }
+        public Vector3 Rotation
+        {
+            get { return Adapter.Convert(Game.physicsSpace.Statics.GetStaticReference(this.staticHandle).Pose.Orientation).ToEulerAngles(); }
+            set { Game.physicsSpace.Statics.GetStaticReference(this.staticHandle).Pose.Orientation = Adapter.Convert(new Quaternion(value)); }
+        }
     }
 }

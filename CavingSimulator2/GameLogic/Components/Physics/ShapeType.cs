@@ -9,6 +9,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
     public enum ShapeType
     {
         box,
-        sphere
+        sphere,
+        compound
     }
 }

@@ -12,5 +12,6 @@ namespace CavingSimulator2.GameLogic.Components.Physics
     {
         public static Dictionary<Vector3, TypedIndex> boxShapes = new Dictionary<Vector3, TypedIndex>();
         public static Dictionary<float, TypedIndex> sphereShapes = new Dictionary<float, TypedIndex>();
+        
     }
 }
