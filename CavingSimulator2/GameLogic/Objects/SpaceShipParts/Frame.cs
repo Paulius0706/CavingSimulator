@@ -13,7 +13,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
     public class Frame : Part
     {
 
-        public Frame(Transform transform)
+        public Frame(Transform transform) : base()
         {
             this.transform = transform;
             this.rigBody = new RigBody(this.transform, Vector3.One, 1, new Vector3i(2, 2, 2));

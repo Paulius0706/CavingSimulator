@@ -51,7 +51,9 @@ namespace CavingSimulator2
         private int fpsCounter = 0;
         private float second = 0;
         private int playerid = -1;
-        private ThreadDispatcher threadDispatcher = new ThreadDispatcher(Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1));
+        private int childid = -1;
+        private bool firstFrame = true;
+        private ThreadDispatcher threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
 
         public Game(int width, int height, string title) : base(
             GameWindowSettings.Default,
@@ -76,16 +78,9 @@ namespace CavingSimulator2
             // Set default color
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
-            Game.shapes = new Shapes(Game.bufferPool, 200);
-            // Create Physics
-            //Game.physicsSpace = Simulation.Create(
-            //    Game.bufferPool, 
-            //    new NarrowPhaseCallbacks(),
-            //    new PoseIntegratorCallbacks(Adapter.Convert(new Vector3(0f, 0f, -10f))), timeStepper, 8);
-            ////new PoseIntegratorCallbacks(Adapter.Convert(new Vector3(0f, 0f, -10f))), new SolveDescription(2, 1));
-
-            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -1f)), new PositionLastTimestepper());
-            Game.physicsSpace.Timestep(0.1f);
+            Game.shapes = new Shapes(Game.bufferPool, 500);
+            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -1f)), new SolveDescription(1, 1));
+            //Game.physicsSpace.Timestep(0.1f);
             // Create block meshes for instance rendering
             Game.blockMeshes =  new BlockMeshes();
 
@@ -127,9 +122,9 @@ namespace CavingSimulator2
             Camera.position = new Vector3(0, -1, 0f);
 
             // Add objects 
+            //Game.objects.Add(BaseObject.incremeter, new Frame(new Transform(new Vector3(1, 1, 100f))));
             playerid = BaseObject.incremeter;
-            //Game.objects.Add(BaseObject.incremeter, new SpaceShipObject(new CavingSimulator.GameLogic.Components.Transform(new Vector3(0.5f, 0.5f, 60f+300f)) ));
-            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0.5f, 0.5f, 60f))));
+            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 20f+20f))));
 
             // Add interactive console
             Debug.Add("FPS", 0, 1);
@@ -137,15 +132,17 @@ namespace CavingSimulator2
             Debug.Add("StaticsCount", 2, 1);
             Debug.Add("BlocksClollidersCount", 3, 1);
             Debug.Add("PlayerPosition", 4, 1);
+            Debug.Add("Exists", 5, 2);
+            Debug.Add("ChildPosition", 7, 1);
 
             base.OnLoad();
         }
         protected override void OnUnload()
         {
+            foreach (BaseObject baseObject in objects.Values) baseObject.Dispose();
             physicsSpace.Dispose();
             threadDispatcher.Dispose();
             bufferPool.Clear();
-            foreach (BaseObject baseObject in objects.Values) baseObject.Dispose();
             shaderPrograms.UnUseProgram();
             shaderPrograms.Remove("object");
             shaderPrograms.Remove("block");
@@ -158,9 +155,16 @@ namespace CavingSimulator2
             Game.cursorState = CursorState;
             Game.mouse = MouseState;
             Game.deltaTime = ((float)e.Time);
-            Game.physicsSpace.Timestepper.Timestep(Game.physicsSpace, Game.deltaTime, threadDispatcher);
             Game.physicsSpace.Timestep(Game.deltaTime, threadDispatcher);
-            //Game.physicsSpace.Timestep(Game.deltaTime, this.threadDispatcher);
+            if (firstFrame)
+            {
+                firstFrame = false;
+                childid = BaseObject.incremeter;
+                (Game.objects[playerid] as PlayerCabin).AddPart(new Vector3i(1, 0, 0), new Frame());
+                (Game.objects[playerid] as PlayerCabin).RemovePart(new Vector3i(1,0,0));
+            }
+            else {  }
+            
 
             ///////////////////////UPDATE//////////////////////////////
 
@@ -178,12 +182,17 @@ namespace CavingSimulator2
                 (double)(Game.objects[playerid] as PlayerCabin).transform.Position.X,
                 (double)(Game.objects[playerid] as PlayerCabin).transform.Position.Y,
                 (double)(Game.objects[playerid] as PlayerCabin).transform.Position.Z));
-            Debug.WriteLine("StaticsCount", 0, "StaticsCount: " + BlocksDir.colliderBlocks.Count);
+            Debug.WriteLine("StaticsCount", 0, "ActiceCount: " + Game.physicsSpace.Bodies.ActiveSet.Count);
             Debug.WriteLine("LoadedChunkCount", 0, "Loaded Chunks:" + ChunkGenerator.chunks.Count);
             Debug.WriteLine("BlocksClollidersCount", 0, "BlocksClollidersCount:" + BlocksDir.colliderBlocks.Count);
-
+            //Debug.WriteLine("ChildPosition", 0, String.Format("Child Position: {0,8:F2} {1,8:F2} {2,8:F2}",
+            //    (double)(Game.objects[playerid] as PlayerCabin).parts[new Vector3i(1, 0, 0)].transform.Position.X,
+            //    (double)(Game.objects[playerid] as PlayerCabin).parts[new Vector3i(1, 0, 0)].transform.Position.Y,
+            //    (double)(Game.objects[playerid] as PlayerCabin).parts[new Vector3i(1, 0, 0)].transform.Position.Z));
+            //Debug.WriteLine("Exists", 0, "Exists:" + BlocksDir.exist);
+            //Debug.WriteLine("Exists", 1, "NotExists:" + BlocksDir.notExits);
             /////////////////////////////////////////////////////
-            
+
             Camera.Update();
             BlocksDir.Update();
             CursorState = Game.cursorState;
@@ -232,7 +241,5 @@ namespace CavingSimulator2
             base.OnResize(e);
         }
 
-        //public static void Destroy(GameObject gameObject) { destroyedGameObjects.Enqueue(gameObject.id); }
-        //public static void Instantiate(GameObject gameObject) { createdGameObjects.Enqueue(gameObject); }
     }
 }

@@ -35,7 +35,7 @@ namespace CavingSimulator2.Debugger
         {
             for (int i = 0; i < lineCount; i++) 
             {
-                Console.CursorTop = lineCursor;
+                Console.CursorTop = lineCursor + i;
                 Console.CursorLeft = 0;
                 string str =
                     Console.WindowWidth > lines[i].Length ?

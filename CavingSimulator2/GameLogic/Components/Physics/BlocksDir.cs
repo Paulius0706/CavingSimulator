@@ -52,7 +52,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                         }
                     }
                 }
-                if (delete) { colliderBlocks[key].Remove(); colliderBlocks.Remove(key); }
+                if (delete) { colliderBlocks[key].Dispose(); colliderBlocks.Remove(key); }
             }
         }
 

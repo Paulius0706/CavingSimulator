@@ -14,8 +14,6 @@ namespace CavingSimulator.GameLogic.Components
 {
     public class Transform
     {
-        private bool haveBody;
-        private BodyReference body;
         public BaseObject baseObject;
 
 
@@ -60,7 +58,6 @@ namespace CavingSimulator.GameLogic.Components
         {
             get
             {
-                if (haveBody) return Adapter.Convert(body.Pose.Position);
                 return position;
             }
             set
@@ -72,17 +69,12 @@ namespace CavingSimulator.GameLogic.Components
         {
             get
             {
-                if (haveBody) return Adapter.Convert(body.Pose.Orientation).ToEulerAngles();
                 return rotation;
             }
             set
             {
                 rotation = value;
             }
-        }
-        public BodyReference Body
-        {
-            set { body = value; haveBody = true; }
         }
         public Vector3 Scale
         {

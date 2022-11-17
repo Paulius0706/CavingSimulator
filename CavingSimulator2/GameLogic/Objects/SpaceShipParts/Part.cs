@@ -18,6 +18,8 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         protected Renderer renderer;
         protected RigBody rigBody;
 
+        public Part() { }
+
         public override void Render()
         {
             if (Game.shaderPrograms.Use == "object") renderer.Render();
@@ -32,8 +34,8 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         protected override void AbstractDispose()
         {
-            if (rigBody is not null) { Console.WriteLine("\n\n\n\n\n\n " + "disposed rig"); rigBody.Dispose(); }
-            if (renderer is not null) renderer.Dispose();
+            if (rigBody is not null) { rigBody.Dispose(); }
+            if (renderer is not null) { renderer.Dispose(); }
         }
 
         public RigBody RigBody

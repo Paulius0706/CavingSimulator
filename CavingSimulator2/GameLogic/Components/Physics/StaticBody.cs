@@ -11,11 +11,12 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.GameLogic.Components.Physics
 {
-    public class StaticBody
+    public class StaticBody : IDisposable
     {
         
         public readonly Transform transform;
         private StaticHandle staticHandle;
+        private bool disposed = false;
 
         private ShapeType shapeType;
 
@@ -25,22 +26,31 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             this.transform = transform;
             if (!ShapesDir.sphereShapes.ContainsKey(radius)) ShapesDir.sphereShapes.Add(radius, Game.physicsSpace.Shapes.Add(new Sphere(radius)));
 
-            this.staticHandle = Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), new CollidableDescription(ShapesDir.sphereShapes[radius], radius)));
+            this.staticHandle = Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), ShapesDir.sphereShapes[radius]));
         }
         public StaticBody(Transform transform, Vector3 size)
         {
             shapeType = ShapeType.box;
             this.transform = transform;
+
             if (!ShapesDir.boxShapes.ContainsKey(size)) ShapesDir.boxShapes.Add(size, Game.physicsSpace.Shapes.Add(new Box(size.X,size.Y,size.Z)));
+            this.staticHandle =  Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), ShapesDir.boxShapes[size]));
 
-            Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), new CollidableDescription(ShapesDir.boxShapes[size], size.Length)));
+            //this.staticHandle = Game.physicsSpace.Statics.Add(new StaticDescription(Adapter.Convert(transform.Position), Game.physicsSpace.Shapes.Add(new Box(size.X, size.Y, size.Z))));
+
         }
-        public void Remove()
+        ~StaticBody()
         {
-            if(Game.physicsSpace.Statics.StaticExists(staticHandle))
-            Game.physicsSpace.Statics.Remove(staticHandle);
+            Dispose();
         }
 
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            Game.physicsSpace.Statics.Remove(staticHandle);
+            
+        }
 
         public Vector3 Position
         {

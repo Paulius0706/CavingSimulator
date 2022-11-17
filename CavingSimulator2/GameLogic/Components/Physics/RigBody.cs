@@ -19,7 +19,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
     {
         //public static Dictionary<Vector3i, StaticBody> colliderBlocks = new Dictionary<Vector3i, StaticBody>();
         public readonly Transform transform;
-        private readonly DynamicBody dynamicBody;
+        private DynamicBody dynamicBody;
         public readonly Vector3i blockDetectionDistance;
         private bool disposed;
         public const float gravity = 10f;
@@ -71,9 +71,9 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 }
             }
         }
-        public void AddChildren(Vector3 offset, Transform transform, Vector3 size, float mass)
+        public void Weld(Vector3 offset, RigBody rigBody, Vector3 size, float mass)
         {
-            dynamicBody.AddChildren(offset, transform, size, mass);
+            dynamicBody.Weld(offset, rigBody, size, mass);
         }
         public static Vector3 GoTowards(Vector3 start, Vector3 target, float delta)
         {
@@ -119,9 +119,6 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             public readonly BodyHandle bodyHandle;
             private BodyReference bodyReference;
 
-            private Dictionary<int, BodyHandle> children = new Dictionary<int, BodyHandle>();
-            private Dictionary<int, ConstraintReference> constraints = new Dictionary<int, ConstraintReference>();
-
             private ShapeType shapeType;
             private bool disposed;
 
@@ -131,65 +128,50 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 shapeType = ShapeType.sphere;
                 this.transform = transform;
                 if (!ShapesDir.sphereShapes.ContainsKey(radius)) ShapesDir.sphereShapes.Add(radius, Game.physicsSpace.Shapes.Add(new Sphere(radius)));
-                BodyInertia bodyInertia;
-                new Sphere(radius).ComputeInertia(1f,out bodyInertia);
+                BodyInertia bodyInertia = new Sphere(radius).ComputeInertia(1f);
                 
                 this.bodyHandle = Game.physicsSpace.Bodies.Add(
                         BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(new Quaternion(transform.Rotation))),
-                        bodyInertia,
-                        new CollidableDescription( ShapesDir.sphereShapes[radius], radius),
-                        new BodyActivityDescription(0.01f))
-                        );
-
-                this.bodyReference = Game.physicsSpace.Bodies.GetBodyReference(bodyHandle);
-                this.bodyReference.Awake = true;
+                            new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(new Quaternion(transform.Rotation))),
+                            bodyInertia,
+                            new CollidableDescription( ShapesDir.sphereShapes[radius], radius),
+                            new BodyActivityDescription(0.01f)
+                        )
+                    );
+                Awake = true;
             }
             public DynamicBody(Transform transform, Vector3 size, float mass)
             {
                 shapeType = ShapeType.box;
                 this.transform = transform;
                 if (!ShapesDir.boxShapes.ContainsKey(size)) ShapesDir.boxShapes.Add(size, Game.physicsSpace.Shapes.Add(new Box(size.X, size.Y, size.Z)));
-                //BodyInertia bodyInertia = new Box(size.X, size.Y, size.Z).ComputeInertia(mass);
-                BodyInertia bodyInertia;
-                new Box(size.X, size.Y, size.Z).ComputeInertia(1f, out bodyInertia);
-
+                BodyInertia bodyInertia = new Box(size.X, size.Y, size.Z).ComputeInertia(1f);
+                Console.WriteLine("rot:" +this.transform.Rotation);
+                Console.WriteLine("pos:" + this.transform.Position);
                 this.bodyHandle = Game.physicsSpace.Bodies.Add(
                         BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(new Quaternion(transform.Rotation))),
+                        new RigidPose(Adapter.Convert(this.transform.Position), Adapter.Convert(new Quaternion(this.transform.Rotation))),
                         bodyInertia,
                         new CollidableDescription(ShapesDir.boxShapes[size],size.Length + 0.1f),
                         new BodyActivityDescription(0.01f)));
 
-                this.bodyReference = Game.physicsSpace.Bodies.GetBodyReference(bodyHandle);
-                this.bodyReference.Awake = true;
+                Awake = true;
+                
             }
             public ref BodyReference GetBodyReference() { return ref this.bodyReference; }
 
-            public int AddChildren(Vector3 offset, Transform transform, Vector3 size, float mass)
+            public int Weld(Vector3 offset, RigBody rigBody, Vector3 size, float mass)
             {
                 if (!ShapesDir.boxShapes.ContainsKey(size)) ShapesDir.boxShapes.Add(size, Game.physicsSpace.Shapes.Add(new Box(size.X, size.Y, size.Z)));
-                BodyInertia bodyInertia;
-                new Box(size.X, size.Y, size.Z).ComputeInertia(1f, out bodyInertia);
+                BodyInertia bodyInertia = new Box(size.X, size.Y, size.Z).ComputeInertia(1f);
 
-                BodyHandle bodyHandle =
-                    Game.physicsSpace.Bodies.Add(
-                        BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(new Quaternion(transform.Rotation))),
-                        bodyInertia,
-                        new CollidableDescription(ShapesDir.boxShapes[size], size.Length), new BodyActivityDescription(0.01f)
-                        ));
-                ConstraintHandle constraintHandle = Game.physicsSpace.Solver.Add(this.bodyHandle, bodyHandle, new Weld()
+                Game.physicsSpace.Solver.Add(this.bodyHandle, rigBody.dynamicBody.bodyHandle, new Weld()
                 {
                     LocalOffset = Adapter.Convert(offset),
                     LocalOrientation = Adapter.Convert(new Quaternion(transform.Rotation)),
-                    SpringSettings = new SpringSettings(10f, 0.001f)
+                    SpringSettings = new SpringSettings(10f, 1f)
                 });
-                Game.physicsSpace.Solver.GetConstraintReference(constraintHandle, out ConstraintReference constraintReference);
-                constraints.Add(bodyHandle.Value, constraintReference);
-                children.Add(bodyHandle.Value, bodyHandle);
 
-                transform.Body = Game.physicsSpace.Bodies.GetBodyReference(bodyHandle);
                 return bodyHandle.Value;
             }
 
@@ -197,40 +179,43 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             {
                 if (disposed) return;
                 disposed = true;
-                if (!bodyReference.Exists) return;
                 
-                Game.physicsSpace.Bodies.Remove(bodyHandle);
-                if (Game.physicsSpace.Bodies.BodyExists(bodyHandle))
-                {
-                    Console.WriteLine("\n\n\n\n\n\n \n\n\n\n\n\n " + "handle still exist");
-                }                
+                Game.physicsSpace.Bodies.Remove(bodyHandle);              
             }
 
             public Vector3 LinearVelocity
             {
-                get { return Adapter.Convert(bodyReference.Velocity.Linear); }
-                set { bodyReference.Velocity.Linear = Adapter.Convert(value); bodyReference.Awake = true; }
+                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Velocity.Linear); }
+                set { Game.physicsSpace.Bodies[bodyHandle].Velocity.Linear = Adapter.Convert(value); Awake = true; }
             }
             public Vector3 AngularVelocity
             {
-                get { return Adapter.Convert(bodyReference.Velocity.Angular); }
-                set { bodyReference.Velocity.Angular = Adapter.Convert(value); bodyReference.Awake = true; }
+                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Velocity.Angular); }
+                set { Game.physicsSpace.Bodies[bodyHandle].Velocity.Angular = Adapter.Convert(value); Awake = true; }
             }
             public Vector3 Position
             {
-                get { return Adapter.Convert(bodyReference.Pose.Position); }
-                set { bodyReference.Pose.Position = Adapter.Convert(value); bodyReference.Awake = true; }
+                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Pose.Position); }
+                set { Game.physicsSpace.Bodies[bodyHandle].Pose.Position = Adapter.Convert(value); Awake = true; }
             }
             public Vector3 Rotation
             {
-                get { return Adapter.Convert(bodyReference.Pose.Orientation).ToEulerAngles(); }
-                set { bodyReference.Pose.Orientation = Adapter.Convert(new Quaternion(value)); bodyReference.Awake = true; }
+                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation).ToEulerAngles(); }
+                set { Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation = Adapter.Convert(new Quaternion(value)); Awake = true; }
             }
             
             public bool Awake
             {
-                get { return bodyReference.Awake; }
-                set { bodyReference.Awake = value; }
+                get 
+                {
+                    return Game.physicsSpace.Bodies[bodyHandle].Awake; 
+                }
+                set 
+                {
+                    BodyReference bodyReference1 = Game.physicsSpace.Bodies[bodyHandle];
+                    bodyReference1.Awake = value; 
+                
+                }
             }
         }
     }

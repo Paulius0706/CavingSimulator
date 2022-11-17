@@ -18,7 +18,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public Dictionary<Vector3i, Part> parts = new Dictionary<Vector3i, Part>();
 
-        public PlayerCabin(Transform transform)
+        public PlayerCabin(Transform transform) : base()
         {
             this.transform = transform;
 
@@ -26,13 +26,13 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             this.rigBody = new RigBody(this.transform, Vector3.One, 1, new Vector3i(2, 2, 2));
 
             AddPart(new Vector3i(1, 1, 1), new Frame());
-            RemovePart(new Vector3i(1, 1, 1));
+            //RemovePart(new Vector3i(1, 1, 1));
             AddPart(   new Vector3i(-1, -1, 1), new Frame());
-            RemovePart(new Vector3i(-1, -1, 1));
+            //RemovePart(new Vector3i(-1, -1, 1));
             AddPart(   new Vector3i( 1, -1, 1), new Frame());
-            RemovePart(new Vector3i( 1, -1, 1));
+            //RemovePart(new Vector3i( 1, -1, 1));
             AddPart(   new Vector3i(-1,  1, 1), new Frame());
-            RemovePart(new Vector3i(-1,  1, 1));
+            //RemovePart(new Vector3i(-1,  1, 1));
 
             //AddPart(   new Vector3i(1, 1, -1), new Frame());
             //RemovePart(new Vector3i(1, 1, -1));
@@ -47,20 +47,21 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             this.chunkGenerator = new ChunkGenerator(this.transform);
 
             this.renderer = new Renderer();
-            this.renderer.AddMesh(new BoxMesh(transform, "container"));
+            this.renderer.AddMesh(new BoxMesh(this.transform, "container"));
         }
-        public void AddPart(Vector3i localPosition, Part part)
+        public int AddPart(Vector3i localPosition, Part part)
         {
             // set object to exat pos
-            part.transform.Position = new Vector3(new Vector4(this.transform.Position) * Matrix4.CreateTranslation(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.Rotation)));
-            part.transform.Rotation = this.transform.Rotation + part.transform.Rotation;
+            part.RigBody.Position = new Vector3(new Vector4(this.rigBody.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.rigBody.Rotation)));
+            part.RigBody.Rotation = this.rigBody.Rotation;
 
-            part.RigBody.Rotation = this.transform.Rotation;
-            part.RigBody.Position = this.transform.Position;
+            //part.RigBody.Rotation = this.transform.Rotation;
+            //part.RigBody.Position = this.transform.Position;
             part.RigBody.LinearVelocity = Vector3.Zero;
 
-            rigBody.AddChildren(localPosition, part.transform, Vector3.One, 1);
+            rigBody.Weld(localPosition, part.RigBody, Vector3.One, 1);
             parts.Add(localPosition, part);
+            return part.id;
         }
         public void RemovePart(Vector3i localPosition)
         {
