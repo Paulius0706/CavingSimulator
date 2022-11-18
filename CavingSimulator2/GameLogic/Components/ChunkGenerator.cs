@@ -114,7 +114,7 @@ namespace CavingSimulator2.GameLogic.Components
             public readonly Vector3i chunkPositionOffset;
             public readonly Vector3i chunkPositionOffset1;
             private Dictionary<Vector3i, Block> blocks = new Dictionary<Vector3i, Block>();
-            public Dictionary<int, BlockChunkMesh> meshes = new Dictionary<int, BlockChunkMesh>();
+            public Dictionary<int, BlockMesh> meshes = new Dictionary<int, BlockMesh>();
 
 
             private bool loaded;
@@ -204,12 +204,12 @@ namespace CavingSimulator2.GameLogic.Components
 
             public void SetMeshes()
             {
-                if (meshes != null) foreach (BlockChunkMesh mesh in meshes.Values) mesh.Dispose();
+                if (meshes != null) foreach (BlockMesh mesh in meshes.Values) mesh.Dispose();
                 meshes.Clear();
                 for(int i = 0; i < 3 * 3 * 3; i++)
                 {
                     if (Game.blockMeshes.meshes.ContainsKey(i))
-                        meshes.Add(i, new BlockChunkMesh(Game.blockMeshes.meshes[i].vertexBuffer));
+                        meshes.Add(i, new BlockMesh(Game.blockMeshes.meshes[i].vertexBuffer));
                 }
             }
             
@@ -298,7 +298,7 @@ namespace CavingSimulator2.GameLogic.Components
                 if (disposed) return;
                 disposed = true;
 
-                foreach (BlockChunkMesh mesh in meshes.Values) mesh.Dispose();
+                foreach (BlockMesh mesh in meshes.Values) mesh.Dispose();
             }
 
             public class Block

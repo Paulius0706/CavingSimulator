@@ -6,17 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CavingSimulator2.Render.Meshes;
 using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.Render;
 
 namespace CavingSimulator2.Render.Meshes.SpaceShipParts
 {
-    public class BoxMesh : Mesh
+    public class FrameMesh : LegacyMesh
     {
-        public BoxMesh() : base() { }
-        public BoxMesh(Transform transform, bool stoplastAtributeBind = false) : base(transform, "", stoplastAtributeBind) { }
-        public BoxMesh(Transform transform, string texture = "", bool stoplastAtributeBind = false) : base(transform, texture, stoplastAtributeBind) { }
+        public FrameMesh() : base() { }
+        public FrameMesh(Transform transform, bool stoplastAtributeBind = false) : base(transform, "", stoplastAtributeBind) { }
+        public FrameMesh(Transform transform, string texture = "", bool stoplastAtributeBind = false) : base(transform, texture, stoplastAtributeBind) { }
 
         protected override int SetVerticesCount() { return 4 * 6; }
         protected override int SetInidicesCount() { return 6 * 6; }

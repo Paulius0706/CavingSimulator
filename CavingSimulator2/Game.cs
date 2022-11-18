@@ -33,13 +33,13 @@ namespace CavingSimulator2
         public static ShaderPrograms shaderPrograms = new ShaderPrograms();
         public static Textures textures = new Textures();
         public static BlockMeshes blockMeshes;
+        public static Meshes meshes = new Meshes();
         public static BlockTextures blockTextures = new BlockTextures("Render/Images/Blocks.jpg");
 
         public static Dictionary<int, BaseObject> objects = new Dictionary<int, BaseObject>();
         public static Simulation physicsSpace;
         public static BufferPool bufferPool = new BufferPool();
         public static TimeStepper timeStepper = new TimeStepper();
-        public static Shapes shapes; 
 
         public static KeyboardState input;
         public static MouseState mouse;
@@ -78,10 +78,10 @@ namespace CavingSimulator2
             // Set default color
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
-            Game.shapes = new Shapes(Game.bufferPool, 500);
-            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -1f)), new SolveDescription(1, 1));
-            //Game.physicsSpace.Timestep(0.1f);
-            // Create block meshes for instance rendering
+            // Set physics
+            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -3f)), new SolveDescription(1, 1));
+
+            // Set block meshes for instance rendering
             Game.blockMeshes =  new BlockMeshes();
 
             // Set inputs
@@ -115,8 +115,13 @@ namespace CavingSimulator2
             Game.shaderPrograms.UnUseProgram();
 
             // Add Textures
-            Game.textures.Add("container", new Texture("Render/Images/container.jpg"));
+            Game.textures.Add("frame", new Texture("Render/Images/container.jpg"));
             Game.textures.Add("grassBlock", new Texture("Render/Images/grass_block.png"));
+            Game.textures.Add("gimbal", new Texture("Render/Images/GimbalFrame.png"));
+
+            // Add Meshes from blender
+            Game.meshes.Add("frame", "Render/Models/Frame.obj", "frame");
+            Game.meshes.Add("gimbal", "Render/Models/Frame.obj", "gimbal");
 
             // Set CameraPosition
             Camera.position = new Vector3(0, -1, 0f);
@@ -160,7 +165,7 @@ namespace CavingSimulator2
             {
                 firstFrame = false;
                 childid = BaseObject.incremeter;
-                (Game.objects[playerid] as PlayerCabin).AddPart(new Vector3i(1, 0, 0), new Frame());
+                (Game.objects[playerid] as PlayerCabin).AddPart(new Vector3i(1, 0, 0), new RigidFrame());
                 (Game.objects[playerid] as PlayerCabin).RemovePart(new Vector3i(1,0,0));
             }
             else {  }
@@ -204,19 +209,11 @@ namespace CavingSimulator2
 
             Camera.Update();
             GL.Enable(EnableCap.DepthTest);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.Blend);
             GL.DepthMask(true);
             GL.DepthFunc(DepthFunction.Less);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Game.shaderPrograms.UseProgram("object");
-            Game.shaderPrograms.Current.SetUniform("View", ref Game.view);
-
-            foreach (BaseObject baseObject in objects.Values) baseObject.Render();
-
-            Game.shaderPrograms.UnUseProgram();
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Game.shaderPrograms.UseProgram("block");
@@ -228,6 +225,18 @@ namespace CavingSimulator2
             Game.shaderPrograms.UnUseProgram();
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            Game.shaderPrograms.UseProgram("object");
+            Game.shaderPrograms.Current.SetUniform("View", ref Game.view);
+
+            foreach (BaseObject baseObject in objects.Values) baseObject.Render();
+
+            Game.shaderPrograms.UnUseProgram();
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+            
             Context.SwapBuffers();
 
             Debug.Render();

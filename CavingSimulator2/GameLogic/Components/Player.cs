@@ -53,14 +53,14 @@ namespace CavingSimulator.GameLogic.Components
                 Inputs.MovementPlane.Y * Vector3.Normalize(Camera.lookToPoint - Inputs.MovementPlane.Y * Camera.lookToPoint.Z * Vector3.UnitZ);
             velocityTarget.Z = 0;
 
-            if (velocityTarget != Vector3.Zero && rigBody != null)
-            {
-                rigBody.LinearVelocity += (RigBody.GoTowordsDelta(rigBody.LinearVelocity, velocityTarget * maxSpeed, acceleration * Game.deltaTime));
-            }
-            if (Inputs.JumpCrouchAxis != 0 && rigBody != null) 
-            {
-                rigBody.LinearVelocity += (RigBody.GoTowordsDelta(rigBody.LinearVelocity, Inputs.JumpCrouchAxis * Camera.up * maxSpeed, acceleration * Game.deltaTime));
-            }
+            //if (velocityTarget != Vector3.Zero && rigBody != null)
+            //{
+            //    rigBody.LinearVelocity += (RigBody.GoTowordsDelta(rigBody.LinearVelocity, velocityTarget * maxSpeed, acceleration * Game.deltaTime));
+            //}
+            //if (Inputs.JumpCrouchAxis != 0 && rigBody != null) 
+            //{
+            //    rigBody.LinearVelocity += (RigBody.GoTowordsDelta(rigBody.LinearVelocity, Inputs.JumpCrouchAxis * Camera.up * maxSpeed, acceleration * Game.deltaTime));
+            //}
         }
     }
 }

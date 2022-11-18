@@ -1,6 +1,6 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components.Physics;
-using CavingSimulator2.GameLogic.Components;
+using CavingSimulator2.Render.Meshes;
 using CavingSimulator2.Render.Meshes.SpaceShipParts;
 using OpenTK.Mathematics;
 using System;
@@ -8,32 +8,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CavingSimulator2.Render.Meshes;
 
 namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
-    public class Frame : Part
+    public class RigidFrame : Part
     {
 
-        public Frame(Transform transform) : base()
+        public RigidFrame(Transform transform) : base()
         {
             this.transform = transform;
+            this.rigBody = new RigBody(this.transform, Vector3.One, 1, new Vector3i(2, 2, 2));
 
             this.renderer = new Renderer();
             this.renderer.AddMesh(new Mesh(this.transform, "frame"));
         }
-        public Frame() : base()
+        public RigidFrame()
         {
             this.transform = new Transform(Vector3.Zero);
+            this.rigBody = new RigBody(this.transform, Vector3.One, 1, Vector3i.Zero);
 
             this.renderer = new Renderer();
             this.renderer.AddMesh(new Mesh(this.transform, "frame"));
+        }
+
+        public override void Render()
+        {
+            if (Game.shaderPrograms.Use == "object") renderer.Render();
         }
 
         public override void Update()
         {
-            transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
-            transform.Rotation = this.parentTransform.Rotation;
+            rigBody.Update();
+        }
+
+
+        public RigBody RigBody
+        {
+            get { return rigBody; }
+            set { rigBody = value; }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace CavingSimulator2.Render.Meshes
 {
     public class BlockMeshes
     {
-        public Dictionary<int, BlockMeshPart> meshes = new Dictionary<int, BlockMeshPart>();
+        public Dictionary<int, BlockMeshBuffer> meshes = new Dictionary<int, BlockMeshBuffer>();
         public const float blockCut = 0.2f;
 
         // ^ y
@@ -86,7 +86,7 @@ namespace CavingSimulator2.Render.Meshes
 
         public BlockMeshes()
         {
-            meshes = new Dictionary<int, BlockMeshPart>();
+            meshes = new Dictionary<int, BlockMeshBuffer>();
             GenerateFaces();
 
 
@@ -98,7 +98,7 @@ namespace CavingSimulator2.Render.Meshes
             // face top
             meshes.Add(
                 (int)FaceBufferId.top,
-                new BlockMeshPart(
+                new BlockMeshBuffer(
                     new VertexPCTOTI[]
                     {
                         new VertexPCTOTI(new Vector3(+0.5f, +0.5f, +0.5f),new Color4(1f,1f,1f,1f), Game.blockTextures.GetTextureCord(0,1, BlockFace.top), Vector3.Zero, 0,0f),
@@ -113,7 +113,7 @@ namespace CavingSimulator2.Render.Meshes
             // face bottom
             meshes.Add(
                 (int)FaceBufferId.bottom,
-                new BlockMeshPart(
+                new BlockMeshBuffer(
                     new VertexPCTOTI[]
                     {
                         new VertexPCTOTI(new Vector3(+0.5f, +0.5f, +0.5f),new Color4(1f,1f,1f,1f), Game.blockTextures.GetTextureCord(0,1, BlockFace.bottom), Vector3.Zero, 0,0f),
@@ -128,7 +128,7 @@ namespace CavingSimulator2.Render.Meshes
             // face right
             meshes.Add(
                 (int)FaceBufferId.right,
-                new BlockMeshPart(
+                new BlockMeshBuffer(
                     new VertexPCTOTI[]
                     {
                         new VertexPCTOTI(new Vector3(+0.5f, +0.5f, +0.5f),new Color4(1f,1f,1f,1f), Game.blockTextures.GetTextureCord(0,1, BlockFace.right), Vector3.Zero, 0,0f),
@@ -143,7 +143,7 @@ namespace CavingSimulator2.Render.Meshes
             // face left
             meshes.Add(
                 (int)FaceBufferId.left,
-                new BlockMeshPart(
+                new BlockMeshBuffer(
                     new VertexPCTOTI[]
                     {
                         new VertexPCTOTI(new Vector3(+0.5f, +0.5f, +0.5f),new Color4(1f,1f,1f,1f), Game.blockTextures.GetTextureCord(0,1, BlockFace.left), Vector3.Zero, 0,0f),
@@ -158,7 +158,7 @@ namespace CavingSimulator2.Render.Meshes
             // face foward
             meshes.Add(
                 (int)FaceBufferId.back,
-                new BlockMeshPart(
+                new BlockMeshBuffer(
                     new VertexPCTOTI[]
                     {
                         new VertexPCTOTI(new Vector3(+0.5f, +0.5f, +0.5f),new Color4(1f,1f,1f,1f), Game.blockTextures.GetTextureCord(0,1, BlockFace.back), Vector3.Zero, 0,0f),
@@ -172,7 +172,7 @@ namespace CavingSimulator2.Render.Meshes
             // face back
             meshes.Add(
                 (int)FaceBufferId.front,
-                new BlockMeshPart(
+                new BlockMeshBuffer(
                     new VertexPCTOTI[]
                     {
                         new VertexPCTOTI(new Vector3(+0.5f, +0.5f, +0.5f),new Color4(1f,1f,1f,1f), Game.blockTextures.GetTextureCord(0,1, BlockFace.front), Vector3.Zero, 0,0f),

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.Render.Meshes
 {
-    public class BlockChunkMesh : IDisposable
+    public class BlockMesh : IDisposable
     {
         public VertexArray vertexArray;
         public VertexBuffer instanceBuffer;
         public bool active;
         private bool disposed;
-        public BlockChunkMesh(VertexBuffer vertexBuffer)
+        public BlockMesh(VertexBuffer vertexBuffer)
         {
             vertexArray = new VertexArray(vertexBuffer);
         }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.Render.Meshes
 {
-    public class BlockMeshPart : IDisposable
+    public class BlockMeshBuffer : IDisposable
     {
         public int texture = -1;
         public VertexBuffer vertexBuffer;
@@ -24,7 +24,7 @@ namespace CavingSimulator2.Render.Meshes
         private bool invalid;
 
         protected Random randomColorator;
-        public BlockMeshPart(VertexPCTOTI[] vertices, int[] indices, Matrix4 transform)
+        public BlockMeshBuffer(VertexPCTOTI[] vertices, int[] indices, Matrix4 transform)
         {
             verticesCount = vertices.Length;
             indicesCount = indices.Length;
@@ -37,7 +37,7 @@ namespace CavingSimulator2.Render.Meshes
             vertexBuffer.SetSubData(ref vertices, vertices.Length);
             indexBuffer.SetData(indices, indices.Length);
         }
-        ~BlockMeshPart() { Dispose(); }
+        ~BlockMeshBuffer() { Dispose(); }
 
         public void Dispose()
         {
