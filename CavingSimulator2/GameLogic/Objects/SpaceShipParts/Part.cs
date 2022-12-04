@@ -21,6 +21,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         public Transform parentTransform;
         public Vector3i localPosition;
         public Vector3 localRotation = Vector3.Zero;
+        public ShapeType colliderShape = ShapeType.box;
 
         public Part() { }
 

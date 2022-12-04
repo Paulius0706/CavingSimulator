@@ -1,7 +1,6 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components.Physics;
 using CavingSimulator2.GameLogic.Components;
-using CavingSimulator2.Render.Meshes.SpaceShipParts;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;

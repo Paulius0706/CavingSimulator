@@ -1,6 +1,5 @@
 ﻿using CavingSimulator2.GameLogic.Components;
 using CavingSimulator2.Render.Meshes;
-using CavingSimulator2.Render.Meshes.SpaceShipParts;
 using System;
 using System.Collections.Generic;
 using System.Linq;

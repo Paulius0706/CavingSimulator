@@ -1,7 +1,6 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components.Physics;
 using CavingSimulator2.GameLogic.Components;
-using CavingSimulator2.Render.Meshes.SpaceShipParts;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -25,28 +24,24 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             this.transform = transform;
 
 
-            this.rigBody = new RigBody(this.transform, 1, new Vector3i(3, 3, 3));
-
-            // auto redirection
-            //AddPart(new Vector3i( 0,  0, 2), new Gimbal(new Vector3(0f, 0f, +30f)));
-            //AddPart(new Vector3i( 0,  0,-2), new Gimbal(new Vector3(0f, 0f, -30f)));
+            this.rigBody = new RigBody(this.transform, 1, new Vector3i(5, 5, 5));
 
             // Up Down
-            AddPart(new Vector3i(0, 0, 1), new Gimbal(new Vector3(0f, 0f,+60f), Keys.Space));
+            AddPart(new Vector3i(0, 0, 1), new Gimbal(new Vector3(0f, 0f,+120f), Keys.Space));
             AddPart(new Vector3i(0, 0,-1), new Gimbal(new Vector3(0f, 0f,-30f), Keys.LeftShift));
 
             // rotate right left
-            AddPart(new Vector3i(+1, -1, 0), new Truster(new Vector3(-30f, 0f, 0f), Keys.D));
-            AddPart(new Vector3i(-1, +1, 0), new Truster(new Vector3(+30f, 0f, 0f), Keys.D));
+            AddPart(new Vector3i(+1, -1, 0), new Thruster(new Vector3(0f,0f, MathHelper.DegreesToRadians(+90f)), 30f, Keys.D));
+            AddPart(new Vector3i(-1, +1, 0), new Thruster(new Vector3(0f,0f, MathHelper.DegreesToRadians(-90f)), 30f, Keys.D));
 
-            AddPart(new Vector3i(-1, -1, 0), new Truster(new Vector3(+30f, 0f, 0f), Keys.A));
-            AddPart(new Vector3i(+1, +1, 0), new Truster(new Vector3(-30f, 0f, 0f), Keys.A));
+            AddPart(new Vector3i(-1, -1, 0), new Thruster(new Vector3(0f, 0f, MathHelper.DegreesToRadians(-90f)), 30f, Keys.A));
+            AddPart(new Vector3i(+1, +1, 0), new Thruster(new Vector3(0f, 0f, MathHelper.DegreesToRadians(+90f)), 30f, Keys.A));
 
             // foward back
-            AddPart(new Vector3i(0, 2, 0), new Truster(new Vector3(0f, +30f, 0f), Keys.W));
+            AddPart(new Vector3i(0, -1, 0), new Thruster(new Vector3(0f, 0f, 0f), 30f, Keys.W));
+            AddPart(new Vector3i(0, +2, 0), new Thruster(new Vector3(0f, 0f, MathHelper.DegreesToRadians(+180f)), 30f, Keys.S));
 
-            AddPart(new Vector3i(0, -1, 0), new Gimbal(new Vector3(0f, -30f, 0f), Keys.S));
-
+            AddPart(new Vector3i(0, +1, 0), new GyroScope(Vector3.Zero, 150f, Vector3.Zero, Keys.G));
 
             this.player = new Player(this.transform, this.rigBody);
             this.chunkGenerator = new ChunkGenerator(this.transform);
@@ -69,7 +64,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             }
             else
             {
-                rigBody.StaticWeld(localPosition, Vector3.One, 1);
+                rigBody.StaticWeld(part.colliderShape,localPosition, part.localRotation, 1);
             }
             parts.Add(localPosition, part);
             return part.id;
@@ -90,7 +85,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             }
             else
             {
-                rigBody.StaticWeld(localPosition, Vector3.One, 1);
+                rigBody.StaticWeld(part.colliderShape,localPosition, part.localRotation, 1f);
             }
             parts.Add(localPosition, part);
             return part.id;

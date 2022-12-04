@@ -28,15 +28,15 @@ namespace CavingSimulator2.Render.Meshes
         public MeshBuffer(string path, int textureID)
         {
             this.textureID = textureID;
-            GetVerticesIndicesUV(path, out List<Vector3> vertices, out List<int> indices, out List<Vector2> textures);
+            GetVerticesIndicesUV(path, out List<Vector3> vertices, out List<int> indices, out List<Vector2> textures, out List<Vector3> normals);
             indicesCount = indices.Count;
             verticesCount = vertices.Count;
-            VertexPCT[] buffer = new VertexPCT[verticesCount];
+            VertexPCTN[] buffer = new VertexPCTN[verticesCount];
             for (int i = 0; i < verticesCount; i++)
             {
-                buffer[i] = new VertexPCT(vertices[i], new Color4(1f, 1f, 1f, 1f), textures[i]);
+                buffer[i] = new VertexPCTN(vertices[i], new Color4(1f, 1f, 1f, 1f), textures[i], normals[i]);
             }
-            vertexBuffer = new VertexBuffer(VertexPCT.VertexInfo, buffer.Length, BufferUsageHint.StaticDraw);
+            vertexBuffer = new VertexBuffer(VertexPCTN.VertexInfo, buffer.Length, BufferUsageHint.StaticDraw);
             indexBuffer = new IndexBuffer(indicesCount, BufferUsageHint.StaticDraw);
             vertexArray = new VertexArray(vertexBuffer);
 
@@ -57,19 +57,21 @@ namespace CavingSimulator2.Render.Meshes
             if (indexBuffer != null) indexBuffer.Dispose();
         }
 
-        private void GetVerticesIndicesUV(string path, out List<Vector3> verticesList, out List<int> indicesList, out List<Vector2> textureList)
+        private void GetVerticesIndicesUV(string path, out List<Vector3> verticesList, out List<int> indicesList, out List<Vector2> textureList, out List<Vector3> normalsList)
         {
-            string[] lines = File.ReadLines(path).ToArray();
-            verticesList = new List<Vector3>();
-            textureList = new List<Vector2>();
-            indicesList = new List<int>();
-            for(int i = 0; i<lines.Length;i++)
+            
+            List<string> lines = File.ReadLines(path).ToList();
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector2> textures = new List<Vector2>();
+            List<Vector3> normals = new List<Vector3>();
+            List<(int,int,int)> indices = new List<(int,int,int)>();
+            for (int i = 0; i<lines.Count;i++)
             {
                 string line = lines[i];
                 if (line.Length > 0 && line.StartsWith("v "))
                 {
                     string[] sectors = line.Split(' ');
-                    verticesList.Add(new Vector3(
+                    vertices.Add(new Vector3(
                         float.Parse(sectors[1], CultureInfo.InvariantCulture.NumberFormat),
                         float.Parse(sectors[2], CultureInfo.InvariantCulture.NumberFormat),
                         float.Parse(sectors[3], CultureInfo.InvariantCulture.NumberFormat)
@@ -77,20 +79,45 @@ namespace CavingSimulator2.Render.Meshes
                 }
                 if (line.Length > 0 && line.StartsWith("f "))
                 {
-                    string[] sectors = line.Split(' ').Select(l => l.Split('/')[0]).ToArray();
-                    indicesList.Add(int.Parse(sectors[1]) - 1);
-                    indicesList.Add(int.Parse(sectors[2]) - 1);
-                    indicesList.Add(int.Parse(sectors[3]) - 1);
+                    string[] sectors = line.Split(' ').ToArray();
+                    for(int j = 1; j < sectors.Length; j++)
+                    {
+                        int[] indexes = sectors[j].Split('/').Select(x => int.Parse(x) - 1).ToArray();
+                        indices.Add((indexes[0], indexes[1], indexes[2]));
+                    }
                 }
                 if (line.Length > 0 && line.StartsWith("vt "))
                 {
                     string[] sectors = line.Split(' ');
-                    textureList.Add(new Vector2(
+                    textures.Add(new Vector2(
                         float.Parse(sectors[1], CultureInfo.InvariantCulture.NumberFormat),
                         float.Parse(sectors[2], CultureInfo.InvariantCulture.NumberFormat)
                         ));
                 }
+                if(line.Length > 0 && line.StartsWith("vn "))
+                {
+                    string[] sectors = line.Split(' ');
+                    normals.Add(new Vector3(
+                        float.Parse(sectors[1], CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(sectors[2], CultureInfo.InvariantCulture.NumberFormat),
+                        float.Parse(sectors[3], CultureInfo.InvariantCulture.NumberFormat)
+                        ));
+                } 
             }
+
+            verticesList = new List<Vector3>();
+            textureList = new List<Vector2>();
+            normalsList = new List<Vector3>();
+            indicesList = new List<int>();
+
+            for(int i = 0; i < indices.Count; i++)
+            {
+                indicesList.Add(i);
+                verticesList.Add(vertices[indices[i].Item1]);
+                textureList.Add(textures[indices[i].Item2]);
+                normalsList.Add(normals[indices[i].Item3]);
+            }
+
             if (verticesList.Count != textureList.Count) throw new Exception("File is corrupted or not right format");
             if (verticesList.Count == 0 || textureList.Count == 0 || indicesList.Count == 0) throw new Exception("there are no vertices textures or indices");
         }

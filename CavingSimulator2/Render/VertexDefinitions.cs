@@ -10,23 +10,26 @@ namespace CavingSimulator2.Render
 
 
     // one vertex object
-    public struct VertexPCT
+    public struct VertexPCTN
     {
         public readonly Vector3 Position;
         public readonly Color4 Color;
         public readonly Vector2 Texture;
+        public readonly Vector3 Normal;
 
-        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCT), new VertexAttribute[] {
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCTN), new VertexAttribute[] {
             new VertexAttribute("Position",0,3,0),
             new VertexAttribute("Color",1,4,3 * sizeof(float)),
             new VertexAttribute("Texture",2,2, 7 * sizeof(float)),
+            new VertexAttribute("Texture",3,3, 9 * sizeof(float))
         });
 
-        public VertexPCT(Vector3 Position, Color4 Color, Vector2 Texture)
+        public VertexPCTN(Vector3 Position, Color4 Color, Vector2 Texture, Vector3 Normal)
         {
             this.Position = Position;
             this.Color = Color;
             this.Texture = Texture;
+            this.Normal = Normal;
         }
     }
     public struct VertexPCI

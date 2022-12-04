@@ -23,6 +23,7 @@ using CavingSimulator2.GameLogic.Components.Physics;
 using BepuPhysics.Collidables;
 using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
+using CavingSimulator2.Physics.Shapes;
 
 namespace CavingSimulator2
 {
@@ -51,9 +52,8 @@ namespace CavingSimulator2
         private int fpsCounter = 0;
         private float second = 0;
         private int playerid = -1;
-        private int childid = -1;
         private bool firstFrame = true;
-        private ThreadDispatcher threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
+        private ThreadDispatcher threadDispatcher;
 
         public Game(int width, int height, string title) : base(
             GameWindowSettings.Default,
@@ -79,7 +79,7 @@ namespace CavingSimulator2
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
             // Set physics
-            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -3f)), new SolveDescription(1, 1));
+            Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -10f)), new SolveDescription(8, 1));
 
             // Set block meshes for instance rendering
             Game.blockMeshes =  new BlockMeshes();
@@ -105,6 +105,7 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("Model", ref model);
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
+            Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(1f, 1f, 1f));
             Game.shaderPrograms.UnUseProgram();
 
             // Add MeshSize View Projection to object shader
@@ -114,14 +115,21 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("MeshSize", 1f / (float)Game.blockTextures.spriteHeight);
             Game.shaderPrograms.UnUseProgram();
 
+            // AddColliders
+            //Slope.ImportMeshCollider("Render/Colliders/Slope.obj");
+
             // Add Textures
-            Game.textures.Add("frame", new Texture("Render/Images/container.jpg"));
+            Game.textures.Add("frame", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("grassBlock", new Texture("Render/Images/grass_block.png"));
             Game.textures.Add("gimbal", new Texture("Render/Images/GimbalFrame.png"));
+            Game.textures.Add("gyroscope", new Texture("Render/Images/GimbalFrame.png"));
+            Game.textures.Add("truster", new Texture("Render/Images/TrusterDebug.png"));
 
             // Add Meshes from blender
             Game.meshes.Add("frame", "Render/Models/Frame.obj", "frame");
             Game.meshes.Add("gimbal", "Render/Models/Frame.obj", "gimbal");
+            Game.meshes.Add("truster", "Render/Models/Truster.obj", "truster");
+            Game.meshes.Add("gyroscope", "Render/Models/Frame.obj", "gyroscope");
 
             // Set CameraPosition
             Camera.position = new Vector3(0, -1, 0f);
@@ -129,7 +137,7 @@ namespace CavingSimulator2
             // Add objects 
             //Game.objects.Add(BaseObject.incremeter, new Frame(new Transform(new Vector3(1, 1, 100f))));
             playerid = BaseObject.incremeter;
-            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 20f+20f))));
+            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 60f + 120f))));
 
             // Add interactive console
             Debug.Add("FPS", 0, 1);
@@ -160,13 +168,14 @@ namespace CavingSimulator2
             Game.cursorState = CursorState;
             Game.mouse = MouseState;
             Game.deltaTime = ((float)e.Time);
-            Game.physicsSpace.Timestep(Game.deltaTime, threadDispatcher);
+            Game.physicsSpace.Timestep(Game.deltaTime);
             if (firstFrame)
             {
+                this.threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
+                Debug.WriteLine("LogTests1");
+                Debug.WriteLine("LogTests2");
+                Debug.WriteLine("LogTests3");
                 firstFrame = false;
-                childid = BaseObject.incremeter;
-                (Game.objects[playerid] as PlayerCabin).AddPart(new Vector3i(1, 0, 0), new RigidFrame());
-                (Game.objects[playerid] as PlayerCabin).RemovePart(new Vector3i(1,0,0));
             }
             else {  }
             
@@ -209,8 +218,8 @@ namespace CavingSimulator2
 
             Camera.Update();
             GL.Enable(EnableCap.DepthTest);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            GL.Enable(EnableCap.Blend);
+            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            //GL.Enable(EnableCap.Blend);
             GL.DepthMask(true);
             GL.DepthFunc(DepthFunction.Less);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -228,6 +237,7 @@ namespace CavingSimulator2
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Game.shaderPrograms.UseProgram("object");
+            Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(20f, 20f, 20f) + (Game.objects[playerid] as PlayerCabin).transform.Position);
             Game.shaderPrograms.Current.SetUniform("View", ref Game.view);
 
             foreach (BaseObject baseObject in objects.Values) baseObject.Render();
@@ -239,7 +249,7 @@ namespace CavingSimulator2
             
             Context.SwapBuffers();
 
-            Debug.Render();
+            //Debug.Render();
 
             base.OnRenderFrame(e);
 

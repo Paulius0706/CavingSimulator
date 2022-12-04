@@ -1,64 +1,67 @@
 ﻿using BepuPhysics;
 using BepuPhysics.Collidables;
-using BepuPhysics.Constraints;
-using BepuUtilities;
-using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 using CavingSimulator.GameLogic.Components;
+using CavingSimulator2.Debugger;
 using CavingSimulator2.Helpers;
+using CavingSimulator2.Physics.Shapes;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace CavingSimulator2.GameLogic.Components.Physics
 {
-    public class RigBody : IDisposable
+    public class RigBody
     {
-        //public static Dictionary<Vector3i, StaticBody> colliderBlocks = new Dictionary<Vector3i, StaticBody>();
         public readonly Transform transform;
-        private DynamicBody dynamicBody;
-        public readonly Vector3i blockDetectionDistance;
+        private BodyHandle bodyHandle;
+        private BodyReference bodyReference;
+        private TypedIndex shapeHandle;
+        public Vector3i blockDetectionDistance;
         private bool disposed;
         private const float angularDrag = 0.5f;
+        private const int PartsLimit = 50;
+        private Dictionary<Vector3, ShapeInfo> shapesInfo = new Dictionary<Vector3, ShapeInfo>();
+        private Dictionary<Vector3, float> shapesMasses = new Dictionary<Vector3, float>();
 
-        public RigBody(Transform transform,float radius,float mass, Vector3i blockDetectionDistance)
-        {
-            this.transform = transform;
-            this.blockDetectionDistance = blockDetectionDistance;
-            dynamicBody = new DynamicBody(transform, radius, mass);
-            
-        }
-        public RigBody(Transform transform, Vector3 size, float mass, Vector3i blockDetectionDistance)
-        {
-            this.transform = transform;
-            this.blockDetectionDistance = blockDetectionDistance;
-            dynamicBody = new DynamicBody(transform, size, mass);
-        }
         public RigBody(Transform transform, float mass, Vector3i blockDetectionDistance)
         {
             this.transform = transform;
             this.blockDetectionDistance = blockDetectionDistance;
-            dynamicBody = new DynamicBody(transform, mass);
+
+            shapesInfo.Add(Vector3.Zero, (ShapeType.box, Vector3.Zero, Vector3.Zero, mass));
+            CompoundBuilder compoundBuilder = new CompoundBuilder(Game.bufferPool, Game.physicsSpace.Shapes, PartsLimit);
+            compoundBuilder.Add(new Box(1, 1, 1), System.Numerics.Vector3.Zero, mass);
+            compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia, out System.Numerics.Vector3 center);
+
+            this.shapeHandle = Game.physicsSpace.Shapes.Add(new BigCompound(children,Game.physicsSpace.Shapes,Game.bufferPool));
+
+            bodyHandle = Game.physicsSpace.Bodies.Add(BodyDescription.CreateDynamic(
+                new RigidPose(Adapter.Convert(this.transform.Position) + center, Adapter.Convert(new Quaternion(this.transform.Rotation))),
+                bodyInertia,
+                new CollidableDescription(this.shapeHandle),
+                new BodyActivityDescription(0.01f))
+                );
+            bodyReference = Game.physicsSpace.Bodies[this.bodyHandle];
+
+            compoundBuilder.Dispose();
         }
         public void Update()
         {
-            //LinearVelocity += -Vector3.UnitZ * gravity * Game.deltaTime;
-            UpdateBlocks();
             UpdateTransform();
+            UpdateBlocks();
+
             Drag();
         }
         private void Drag()
         {
-            Vector3 angularVelocity = dynamicBody.AngularVelocity;
+            Vector3 angularVelocity = AngularVelocity;
             float drag = angularDrag * Game.deltaTime;
-            angularVelocity.X = angularVelocity.X > 0 ? 
-                (angularVelocity.X - drag >= 0 ? angularVelocity.X - drag : 0f) : 
+            angularVelocity.X = angularVelocity.X > 0 ?
+                (angularVelocity.X - drag >= 0 ? angularVelocity.X - drag : 0f) :
                 (angularVelocity.X + drag <= 0 ? angularVelocity.X + drag : 0f);
             angularVelocity.Y = angularVelocity.Y > 0 ?
                 (angularVelocity.Y - drag >= 0 ? angularVelocity.Y - drag : 0f) :
@@ -66,14 +69,13 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             angularVelocity.Z = angularVelocity.Z > 0 ?
                 (angularVelocity.Z - drag >= 0 ? angularVelocity.Z - drag : 0f) :
                 (angularVelocity.Z + drag <= 0 ? angularVelocity.Z + drag : 0f);
-            dynamicBody.AngularVelocity = angularVelocity;
-
+            AngularVelocity = angularVelocity;
         }
 
         private void UpdateTransform()
         {
-            transform.Position = dynamicBody.Position;
-            transform.Rotation = dynamicBody.Rotation;
+            transform.Position = Position;
+            transform.Rotation = Rotation;
         }
         private void UpdateBlocks()
         {
@@ -100,23 +102,111 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         }
         public void AddForce(Vector3 worldPosition, Vector3 force)
         {
-            dynamicBody.AddForce(worldPosition,force);
+
+            Game.physicsSpace.Bodies[bodyHandle].ApplyImpulse(Adapter.Convert(force), Adapter.Convert(worldPosition));
+            bodyReference.Awake = true;
+        }
+        public void AddAngularVelocity(Vector3 force)
+        {
+
+            Game.physicsSpace.Bodies[bodyHandle].ApplyAngularImpulse(Adapter.Convert(force));
+            bodyReference.Awake = true;
         }
         public void Weld(Vector3 offset, RigBody rigBody, Vector3 size, float mass)
         {
-            dynamicBody.Weld(offset, rigBody, size, mass);
+
         }
         public void UnWeld(Vector3 offset)
         {
-            dynamicBody.UnWeld(offset);
+            
         }
-        public void StaticWeld(Vector3 offset, Vector3 size, float mass)
+        public void StaticWeld(ShapeType shapeType, Vector3 localPosition, Vector3 localRotation, float mass)
         {
-            dynamicBody.StaticWeld(offset, size, mass);
+            // adds new shape to selected list
+            if (shapesInfo.ContainsKey(localPosition)) return;
+            shapesInfo.Add(localPosition, (shapeType, localPosition, localRotation, mass));
+            UpdateShape();
+            
         }
         public void StaticUnweld(Vector3 offset)
         {
-            dynamicBody.StaticUnweld(offset);
+            // adds new shape to selected list
+            if (!shapesInfo.ContainsKey(offset)) return;
+            shapesInfo.Remove(offset);
+            UpdateShape();
+
+        }
+        private void UpdateShape()
+        {
+            RigidPose rigidPose = bodyReference.Pose;
+            
+            // compute new compound
+            CompoundBuilder compoundBuilder = new CompoundBuilder(Game.bufferPool,Game.physicsSpace.Shapes,PartsLimit);
+            foreach (ShapeInfo info in this.shapesInfo.Values)
+            {
+                //Debug.WriteLine(info.type.ToString());
+                Console.WriteLine(info.type.ToString() + " " + shapesInfo.Count);
+                switch (info.type)
+                {
+                    case ShapeType.box: compoundBuilder.Add(new Box(1f, 1f, 1f), new RigidPose(info.position/*, info.rotation*/), info.mass); break;
+                    case ShapeType.sphere: compoundBuilder.Add(new Sphere(0.5f), new RigidPose(info.position, info.rotation), info.mass); break;
+                    case ShapeType.cylinder: compoundBuilder.Add(new Cylinder(0.5f, 1f), new RigidPose(info.position, info.rotation), info.mass); break;
+                    case ShapeType.slope: compoundBuilder.Add(new Slope(1f, 1f, 1f), new RigidPose(info.position, info.rotation), info.mass); break;
+                }
+            }
+            compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia);//, out System.Numerics.Vector3 center);
+            
+            TypedIndex newShapeHandle = Game.physicsSpace.Shapes.Add(new BigCompound(children, Game.physicsSpace.Shapes, Game.bufferPool));
+
+            // sets new Shape and inertia to body
+            //bodyReference.SetShape(newShapeHandle);
+            //bodyReference.SetLocalInertia(bodyInertia);
+
+            bodyReference.ApplyDescription(
+                BodyDescription.CreateDynamic(
+                    new RigidPose(new System.Numerics.Vector3(0,0,300f)),
+                    bodyInertia,
+                    new CollidableDescription(newShapeHandle),
+                    new BodyActivityDescription(0.01f))
+                );
+            
+
+            
+
+            Game.physicsSpace.Shapes.RecursivelyRemoveAndDispose(this.shapeHandle, Game.bufferPool);
+            this.shapeHandle = newShapeHandle;
+            compoundBuilder.Dispose();
+        }
+        
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            Game.physicsSpace.Bodies.Remove(bodyReference.Handle);
+            Game.physicsSpace.Shapes.RemoveAndDispose(shapeHandle, Game.bufferPool);
+            
+        }
+
+        public Vector3 LinearVelocity
+        {
+            get { return Adapter.Convert(bodyReference.Velocity.Linear); }
+            set { bodyReference.Velocity.Linear = Adapter.Convert(value); bodyReference.Awake = true; }
+        }
+        public Vector3 AngularVelocity
+        {
+            get { return Adapter.Convert(bodyReference.Velocity.Angular) ; }
+            set { bodyReference.Velocity.Angular = Adapter.Convert(value); bodyReference.Awake = true; }
+        }
+        public Vector3 Position
+        {
+            get { return Adapter.Convert(bodyReference.Pose.Position); }
+            set { bodyReference.Pose.Position = Adapter.Convert( value); bodyReference.Awake = true; }
+        }
+        public Vector3 Rotation
+        {
+            get { return Adapter.Convert(bodyReference.Pose.Orientation).ToEulerAngles(); }
+            set { bodyReference.Pose.Orientation = Adapter.Convert(new Quaternion (value)); bodyReference.Awake = true; }
         }
         public static Vector3 GoTowards(Vector3 start, Vector3 target, float delta)
         {
@@ -125,267 +215,6 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         public static Vector3 GoTowordsDelta(Vector3 start, Vector3 target, float delta)
         {
             return Vector3.Normalize(target - start) * delta;
-        }
-
-        public void Dispose()
-        {
-            if (disposed) return;
-            disposed = true;
-            dynamicBody.Dispose();
-        }
-
-        public Vector3 LinearVelocity
-        {
-            get { return dynamicBody.LinearVelocity; }
-            set { dynamicBody.LinearVelocity = value; dynamicBody.Awake = true; }
-        }
-        public Vector3 AngularVelocity
-        {
-            get { return dynamicBody.AngularVelocity; }
-            set { dynamicBody.AngularVelocity = value; dynamicBody.Awake = true; }
-        }
-        public Vector3 Position
-        {
-            get { return dynamicBody.Position; }
-            set { dynamicBody.Position = value; dynamicBody.Awake = true; }
-        }
-        public Vector3 Rotation
-        {
-            get { return dynamicBody.Rotation; }
-            set { dynamicBody.Rotation = value; dynamicBody.Awake = true; }
-        }
-
-
-        sealed class DynamicBody : IDisposable
-        {
-            public readonly Transform transform;
-            public BodyHandle bodyHandle;
-
-            
-            private ShapeType shapeType;
-            private bool disposed;
-            
-
-            public DynamicBody(Transform transform, float radius, float mass)
-            {
-                shapeType = ShapeType.sphere;
-                this.transform = transform;
-                if (!ShapesDir.sphereShapes.ContainsKey(radius)) ShapesDir.sphereShapes.Add(radius, Game.physicsSpace.Shapes.Add(new Sphere(radius)));
-                BodyInertia bodyInertia = new Sphere(radius).ComputeInertia(mass);
-                
-                this.bodyHandle = Game.physicsSpace.Bodies.Add(
-                        BodyDescription.CreateDynamic(
-                            new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(new Quaternion(transform.Rotation))),
-                            bodyInertia,
-                            new CollidableDescription( ShapesDir.sphereShapes[radius], radius),
-                            new BodyActivityDescription(0.01f)
-                        )
-                    );
-                Awake = true;
-            }
-            public DynamicBody(Transform transform, Vector3 size, float mass)
-            {
-                shapeType = ShapeType.box;
-                this.transform = transform;
-                if (!ShapesDir.boxShapes.ContainsKey(size)) ShapesDir.boxShapes.Add(size, Game.physicsSpace.Shapes.Add(new Box(size.X, size.Y, size.Z)));
-                BodyInertia bodyInertia = new Box(size.X, size.Y, size.Z).ComputeInertia(mass);
-                
-                this.bodyHandle = Game.physicsSpace.Bodies.Add(
-                        BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(this.transform.Position), Adapter.Convert(new Quaternion(this.transform.Rotation))),
-                        bodyInertia,
-                        new CollidableDescription(ShapesDir.boxShapes[size]),
-                        new BodyActivityDescription(0.01f)));
-
-                Awake = true;
-            }
-            public void AddForce(Vector3 worldPosition, Vector3 force)
-            {
-                Game.physicsSpace.Bodies[bodyHandle].ApplyImpulse(Adapter.Convert(force), Adapter.Convert(worldPosition));
-                Awake = true;
-            }
-
-            Dictionary<System.Numerics.Vector3, (BodyHandle, System.Numerics.Vector3, System.Numerics.Quaternion, ConstraintHandle)> welds = new Dictionary<System.Numerics.Vector3, (BodyHandle, System.Numerics.Vector3, System.Numerics.Quaternion, ConstraintHandle)>();
-            public void Weld(Vector3 offset, RigBody rigBody, Vector3 size, float mass)
-            {
-                if (!ShapesDir.boxShapes.ContainsKey(size)) ShapesDir.boxShapes.Add(size, Game.physicsSpace.Shapes.Add(new Box(size.X, size.Y, size.Z)));
-                BodyInertia bodyInertia = new Box(size.X, size.Y, size.Z).ComputeInertia(1f);
-
-                welds.Add(Adapter.Convert(offset),
-                    (rigBody.dynamicBody.bodyHandle,
-                    Adapter.Convert(offset),
-                    Adapter.Convert(new Quaternion(transform.Rotation)),
-                    Game.physicsSpace.Solver.Add(this.bodyHandle, rigBody.dynamicBody.bodyHandle, new Weld()
-                        {
-                            LocalOffset = Adapter.Convert(offset),
-                            LocalOrientation = Adapter.Convert(new Quaternion(transform.Rotation)),
-                            SpringSettings = new SpringSettings(10f, 1f)
-                        })
-                    )
-                    );
-
-            }
-            public void UnWeld(Vector3 offset)
-            {
-                Game.physicsSpace.Solver.Remove(welds[Adapter.Convert(offset)].Item4);
-                welds.Remove(Adapter.Convert(offset));
-            }
-            /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            Dictionary<System.Numerics.Vector3, (Box, System.Numerics.Vector3, float)> boxes;
-            Dictionary<System.Numerics.Vector3, (Sphere, System.Numerics.Vector3, float)> spheres;
-            private const int maxPartLimit = 8;
-            public TypedIndex compoundHandle;
-            
-            public DynamicBody(Transform transform, float mass)
-            {
-                boxes = new Dictionary<System.Numerics.Vector3, (Box, System.Numerics.Vector3, float)>();
-                spheres = new Dictionary<System.Numerics.Vector3, (Sphere, System.Numerics.Vector3, float)>();
-
-                this.transform = transform;
-                CompoundBuilder compoundBuilder = new CompoundBuilder(Game.bufferPool, Game.physicsSpace.Shapes, maxPartLimit);
-
-                boxes.Add(System.Numerics.Vector3.Zero, (new BepuPhysics.Collidables.Box(1,1,1), System.Numerics.Vector3.Zero, mass));
-                compoundBuilder.Add(boxes[System.Numerics.Vector3.Zero].Item1, boxes[System.Numerics.Vector3.Zero].Item2, boxes[System.Numerics.Vector3.Zero].Item3);
-                
-                compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia, out System.Numerics.Vector3 center);
-                compoundBuilder.Reset();
-                compoundBuilder.Dispose();
-                //Console.WriteLine(children.Length + " " + bodyInertia.InverseMass + " " + center);
-                this.compoundHandle = Game.physicsSpace.Shapes.Add(new Compound(children));
-                this.bodyHandle = Game.physicsSpace.Bodies.Add(
-                        BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(this.transform.Position) + center, Adapter.Convert(new Quaternion(this.transform.Rotation))),
-                        bodyInertia,
-                        new CollidableDescription(this.compoundHandle),
-                        new BodyActivityDescription(0.01f)));
-                Awake = true;
-            }
-
-            
-            public void StaticWeld(Vector3 localPosition, Vector3 size, float mass)
-            {
-                
-                boxes.Add(Adapter.Convert(localPosition), (new Box(size.X, size.Y, size.Z),Adapter.Convert(localPosition), mass));
-
-                System.Numerics.Vector3 position = Game.physicsSpace.Bodies[bodyHandle].Pose.Position;
-                System.Numerics.Quaternion rotation = Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation;
-                System.Numerics.Vector3 velocity = Game.physicsSpace.Bodies[bodyHandle].Velocity.Linear;
-                System.Numerics.Vector3 angularVelocity = Game.physicsSpace.Bodies[bodyHandle].Velocity.Angular;
-                
-                Game.physicsSpace.Bodies.Remove(bodyHandle);
-                Game.physicsSpace.Shapes.Remove(compoundHandle);
-
-                CompoundBuilder compoundBuilder = new CompoundBuilder(Game.bufferPool, Game.physicsSpace.Shapes, maxPartLimit);
-                foreach (var box in boxes.Values)
-                {
-                    compoundBuilder.Add(box.Item1, box.Item2, box.Item3);
-                }
-                foreach (var sphere in spheres.Values)
-                {
-                    compoundBuilder.Add(sphere.Item1, sphere.Item2, sphere.Item3);
-                }
-                compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia);
-                compoundBuilder.Reset();
-                compoundBuilder.Dispose();
-                this.compoundHandle = Game.physicsSpace.Shapes.Add(new Compound(children));
-                this.bodyHandle = Game.physicsSpace.Bodies.Add(
-                        BodyDescription.CreateDynamic(
-                        new RigidPose(position, rotation),
-                        bodyInertia,
-                        new CollidableDescription(this.compoundHandle),
-                        new BodyActivityDescription(0.01f)));
-                WeldALL();
-                Awake = true;
-            }
-            public void StaticUnweld(Vector3 localPosition)
-            {
-                boxes.Remove(Adapter.Convert(localPosition));
-                
-                System.Numerics.Vector3 position = Game.physicsSpace.Bodies[bodyHandle].Pose.Position;
-                System.Numerics.Quaternion rotation = Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation;
-                System.Numerics.Vector3 velocity = Game.physicsSpace.Bodies[bodyHandle].Velocity.Linear;
-                System.Numerics.Vector3 angularVelocity = Game.physicsSpace.Bodies[bodyHandle].Velocity.Angular;
-                Game.physicsSpace.Bodies.Remove(bodyHandle);
-                Game.physicsSpace.Shapes.Remove(compoundHandle);
-
-                CompoundBuilder compoundBuilder = new CompoundBuilder(Game.bufferPool, Game.physicsSpace.Shapes, maxPartLimit);
-                foreach (var box in boxes.Values)
-                {
-                    compoundBuilder.Add(box.Item1, box.Item2, box.Item3);
-                }
-                foreach (var sphere in spheres.Values)
-                {
-                    compoundBuilder.Add(sphere.Item1, sphere.Item2, sphere.Item3);
-                }
-                compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia);
-                compoundBuilder.Reset();
-                compoundBuilder.Dispose();
-                this.compoundHandle = Game.physicsSpace.Shapes.Add(new Compound(children));
-                this.bodyHandle = Game.physicsSpace.Bodies.Add(
-                        BodyDescription.CreateDynamic(
-                        new RigidPose(position, rotation),
-                        bodyInertia,
-                        new CollidableDescription(this.compoundHandle),
-                        new BodyActivityDescription(0.01f)));
-                WeldALL();
-                Awake = true;
-            }
-            private void WeldALL()
-            {
-                foreach(var constrain in welds.Values)
-                {
-                    Game.physicsSpace.Solver.Add(this.bodyHandle, constrain.Item1, new Weld()
-                    {
-                        LocalOffset = constrain.Item2,
-                        LocalOrientation = constrain.Item3,
-                        SpringSettings = new SpringSettings(10f, 1f)
-                    });
-                }
-            }
-
-            public void Dispose()
-            {
-                if (disposed) return;
-                disposed = true;
-                
-                Game.physicsSpace.Bodies.Remove(bodyHandle);              
-            }
-
-            public Vector3 LinearVelocity
-            {
-                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Velocity.Linear); }
-                set { Game.physicsSpace.Bodies[bodyHandle].Velocity.Linear = Adapter.Convert(value); Awake = true; }
-            }
-            public Vector3 AngularVelocity
-            {
-                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Velocity.Angular); }
-                set { Game.physicsSpace.Bodies[bodyHandle].Velocity.Angular = Adapter.Convert(value); Awake = true; }
-            }
-            public Vector3 Position
-            {
-                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Pose.Position); }
-                set { Game.physicsSpace.Bodies[bodyHandle].Pose.Position = Adapter.Convert(value); Awake = true; }
-            }
-            public Vector3 Rotation
-            {
-                get { return Adapter.Convert(Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation).ToEulerAngles(); }
-                set { Game.physicsSpace.Bodies[bodyHandle].Pose.Orientation = Adapter.Convert(new Quaternion(value)); Awake = true; }
-            }
-            
-            public bool Awake
-            {
-                get 
-                {
-                    return Game.physicsSpace.Bodies[bodyHandle].Awake; 
-                }
-                set 
-                {
-                    BodyReference bodyReference1 = Game.physicsSpace.Bodies[bodyHandle];
-                    bodyReference1.Awake = value; 
-                
-                }
-            }
         }
     }
 }
