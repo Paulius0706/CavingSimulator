@@ -46,6 +46,9 @@
     <None Update="Render\Models\Frame.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Render\Models\Selector.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Render\Models\Truster.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -61,10 +64,12 @@
     <None Update="Render\Shaders\shader.vert">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Render\Models\" />
+    <None Update="Render\Shaders\UIShader.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Render\Shaders\UIShader.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

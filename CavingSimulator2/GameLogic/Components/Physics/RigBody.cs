@@ -138,14 +138,9 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         }
         private void UpdateShape()
         {
-            RigidPose rigidPose = bodyReference.Pose;
-            
-            // compute new compound
             CompoundBuilder compoundBuilder = new CompoundBuilder(Game.bufferPool,Game.physicsSpace.Shapes,PartsLimit);
             foreach (ShapeInfo info in this.shapesInfo.Values)
             {
-                //Debug.WriteLine(info.type.ToString());
-                Console.WriteLine(info.type.ToString() + " " + shapesInfo.Count);
                 switch (info.type)
                 {
                     case ShapeType.box: compoundBuilder.Add(new Box(1f, 1f, 1f), new RigidPose(info.position/*, info.rotation*/), info.mass); break;
@@ -158,20 +153,21 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             
             TypedIndex newShapeHandle = Game.physicsSpace.Shapes.Add(new BigCompound(children, Game.physicsSpace.Shapes, Game.bufferPool));
 
-            // sets new Shape and inertia to body
-            //bodyReference.SetShape(newShapeHandle);
-            //bodyReference.SetLocalInertia(bodyInertia);
+            System.Numerics.Vector3 position = Adapter.Convert(transform.Position);
+            System.Numerics.Quaternion orentation = Adapter.Convert(new Quaternion(transform.Rotation));
 
             bodyReference.ApplyDescription(
                 BodyDescription.CreateDynamic(
-                    new RigidPose(new System.Numerics.Vector3(0,0,300f)),
+                    new RigidPose(),
                     bodyInertia,
                     new CollidableDescription(newShapeHandle),
                     new BodyActivityDescription(0.01f))
                 );
-            
+            bodyReference.Pose.Position = position;
+            bodyReference.Pose.Orientation = orentation;
 
-            
+
+
 
             Game.physicsSpace.Shapes.RecursivelyRemoveAndDispose(this.shapeHandle, Game.bufferPool);
             this.shapeHandle = newShapeHandle;

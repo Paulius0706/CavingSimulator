@@ -34,5 +34,13 @@ namespace CavingSimulator2.Helpers
         public static bool Jump { get { return Game.input.IsKeyDown(Keys.Space); } }
         public static bool Crouch { get { return Game.input.IsKeyDown(Keys.LeftShift); } }
         public static float RMouseClick { get { return Game.mouse.IsButtonDown(MouseButton.Right) ? 1f : 0f; } }
+        public static bool LockUnlock { get { return Game.input.IsKeyPressed(Keys.B); } }
+
+        public static bool Left { get { return Game.input.IsKeyPressed(Keys.A) || Game.input.IsKeyPressed(Keys.Left); } }
+        public static bool Right { get { return Game.input.IsKeyPressed(Keys.D) || Game.input.IsKeyPressed(Keys.Right);} }
+        public static bool Forward { get { return Game.input.IsKeyPressed(Keys.W) || Game.input.IsKeyPressed(Keys.Up); } }
+        public static bool Back { get { return Game.input.IsKeyPressed(Keys.S) || Game.input.IsKeyPressed(Keys.Down); } }
+        public static bool Up { get { return Game.input.IsKeyPressed(Keys.Space); } }
+        public static bool Down { get { return Game.input.IsKeyPressed(Keys.LeftShift); } }
     }
 }

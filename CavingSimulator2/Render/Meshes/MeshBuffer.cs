@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.Render.Meshes
 {
+    /// <summary>
+    /// Palace where blender mesh cordiantes is stored
+    /// </summary>
     public class MeshBuffer : IDisposable
     {
         public readonly int textureID;

@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.Render.Meshes
 {
+    /// <summary>
+    /// Class to identify individual mesh object position and atributes
+    /// </summary>
     public class Mesh : IDisposable
     {
         public readonly MeshBuffer meshBuffer;

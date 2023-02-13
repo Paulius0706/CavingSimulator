@@ -17,6 +17,7 @@ void main(){
     vec3 normal = normalize(normalMatrix * vNormal);
     
     vec3 surfaceToLight = LightPos - vec3(Model * vec4(vFragPos, 1));
+    surfaceToLight = LightPos; // - vec3(Model * vec4(vFragPos, 1));
 
     float brightness = ((dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal))) + 1) * 0.5 * 0.8 + 0.2;
     //brightness = (dot(normal, normalize(surfaceToLight))) - 0.4f;

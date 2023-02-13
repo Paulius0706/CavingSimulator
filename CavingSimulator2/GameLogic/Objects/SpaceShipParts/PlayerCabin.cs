@@ -9,13 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using CavingSimulator2.Render.Meshes;
+using CavingSimulator2.Helpers;
 
 namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
     public class PlayerCabin : Part
     {
         public Player player;
+        public Inventory inventory;
         public ChunkGenerator chunkGenerator;
+        public Selector selector;
 
         public Dictionary<Vector3i, Part> parts = new Dictionary<Vector3i, Part>();
 
@@ -43,7 +46,8 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
             AddPart(new Vector3i(0, +1, 0), new GyroScope(Vector3.Zero, 150f, Vector3.Zero, Keys.G));
 
-            this.player = new Player(this.transform, this.rigBody);
+            this.player = new Player(this.transform, this.rigBody, this);
+            this.inventory = new Inventory(this);
             this.chunkGenerator = new ChunkGenerator(this.transform);
 
             this.renderer = new Renderer();
@@ -113,14 +117,38 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
                 foreach (var part in parts.Values) { part.Render(); }
             } 
             if (Game.shaderPrograms.Use == "block") chunkGenerator.Render();
-            
+            if (Game.shaderPrograms.Use == "object" && selector != null) selector.Render();
+
         }
         public override void Update()
         {
+            inventory.Update();
             rigBody.Update();
             player.Update();
             chunkGenerator.Update();
+            
             foreach(var part in parts.Values) { part.Update(); }
+            if (Inputs.LockUnlock)
+            {
+                if (selector != null) { selector.Dispose(); selector = null; }
+                else
+                {
+                    selector = new Selector(this.transform);
+                    selector.frozenPos = this.transform.Position;
+                    selector.frozenRotation = this.transform.Rotation;
+                    rigBody.AngularVelocity = Vector3.Zero;
+                    rigBody.LinearVelocity = Vector3.Zero;
+                }
+            }
+            if (selector != null)
+            {
+                selector.Update();
+                rigBody.Position = selector.frozenPos;
+                rigBody.Rotation = selector.frozenRotation;
+                rigBody.AngularVelocity = Vector3.Zero;
+                rigBody.LinearVelocity= Vector3.Zero;
+            }
+            
         }
 
     }

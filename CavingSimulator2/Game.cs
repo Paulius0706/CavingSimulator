@@ -24,6 +24,8 @@ using BepuPhysics.Collidables;
 using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
 using CavingSimulator2.Physics.Shapes;
+using CavingSimulator2.GameLogic.UI;
+using CavingSimulator2.GameLogic.UI.Views;
 
 namespace CavingSimulator2
 {
@@ -35,6 +37,7 @@ namespace CavingSimulator2
         public static Textures textures = new Textures();
         public static BlockMeshes blockMeshes;
         public static Meshes meshes = new Meshes();
+        public static Interface UI = new Interface();
         public static BlockTextures blockTextures = new BlockTextures("Render/Images/Blocks.jpg");
 
         public static Dictionary<int, BaseObject> objects = new Dictionary<int, BaseObject>();
@@ -47,12 +50,14 @@ namespace CavingSimulator2
         public static CursorState cursorState = CursorState.Normal;
         public static Vector2 mouseMoveDelta = Vector2.Zero;
         public static float deltaTime = 0;
+        public static Vector2 ViewPortSize = new Vector2(1280,720);
         public static Matrix4 view = Matrix4.Identity;
 
         private int fpsCounter = 0;
         private float second = 0;
         private int playerid = -1;
         private bool firstFrame = true;
+        private bool loaded = false;
         private ThreadDispatcher threadDispatcher;
 
         public Game(int width, int height, string title) : base(
@@ -70,6 +75,7 @@ namespace CavingSimulator2
             }
             )
         {
+            ViewPortSize = new Vector2(width, height);
             CenterWindow();
         }
         protected override void OnLoad()
@@ -80,7 +86,7 @@ namespace CavingSimulator2
 
             // Set physics
             Game.physicsSpace = Simulation.Create(bufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new System.Numerics.Vector3(0, 0, -10f)), new SolveDescription(8, 1));
-
+            
             // Set block meshes for instance rendering
             Game.blockMeshes =  new BlockMeshes();
 
@@ -91,6 +97,7 @@ namespace CavingSimulator2
             // Create shaders
             Game.shaderPrograms.Add("object", new ShaderProgram("Render/Shaders/shader.vert", "Render/Shaders/shader.frag"));
             Game.shaderPrograms.Add("block", new ShaderProgram("Render/Shaders/blockShader.vert", "Render/Shaders/blockShader.frag"));
+            Game.shaderPrograms.Add("UI", new ShaderProgram("Render/Shaders/UIShader.vert", "Render/Shaders/UIShader.frag"));
 
 
             // Set Model View Projection 
@@ -105,7 +112,7 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("Model", ref model);
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
-            Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(1f, 1f, 1f));
+            Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(20f, 20f, 20f));
             Game.shaderPrograms.UnUseProgram();
 
             // Add MeshSize View Projection to object shader
@@ -115,29 +122,43 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("MeshSize", 1f / (float)Game.blockTextures.spriteHeight);
             Game.shaderPrograms.UnUseProgram();
 
+            // Add to IU shader
+            Game.shaderPrograms.UseProgram("UI");
+            Game.shaderPrograms.UnUseProgram();
+
+
+
             // AddColliders
             //Slope.ImportMeshCollider("Render/Colliders/Slope.obj");
 
             // Add Textures
+            Game.textures.Add("itemFrame", new Texture("Render/Images/GimbalFrame.png"));
+            Game.textures.Add("itemBackGround", new Texture("Render/Images/TrusterDebug.png"));
+
             Game.textures.Add("frame", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("grassBlock", new Texture("Render/Images/grass_block.png"));
             Game.textures.Add("gimbal", new Texture("Render/Images/GimbalFrame.png"));
             Game.textures.Add("gyroscope", new Texture("Render/Images/GimbalFrame.png"));
             Game.textures.Add("truster", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("selector", new Texture("Render/Images/TrusterDebug.png"));
 
             // Add Meshes from blender
             Game.meshes.Add("frame", "Render/Models/Frame.obj", "frame");
             Game.meshes.Add("gimbal", "Render/Models/Frame.obj", "gimbal");
             Game.meshes.Add("truster", "Render/Models/Truster.obj", "truster");
-            Game.meshes.Add("gyroscope", "Render/Models/Frame.obj", "gyroscope");
+            Game.meshes.Add("gyroscope", "Render/Models/Selector.obj", "gyroscope");
+            Game.meshes.Add("selector", "Render/Models/Selector.obj", "selector");
 
             // Set CameraPosition
             Camera.position = new Vector3(0, -1, 0f);
 
             // Add objects 
-            //Game.objects.Add(BaseObject.incremeter, new Frame(new Transform(new Vector3(1, 1, 100f))));
             playerid = BaseObject.incremeter;
-            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 60f + 120f))));
+            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 20f))));
+
+            // Add UI Elements
+            Game.UI["builder"] = new BuilderView();
+            //Game.uiMeshes.Add("inventory", "selector", new Vector2(-0.5f, -0.5f), new Vector2(0.5f, 0.5f));
 
             // Add interactive console
             Debug.Add("FPS", 0, 1);
@@ -146,7 +167,8 @@ namespace CavingSimulator2
             Debug.Add("BlocksClollidersCount", 3, 1);
             Debug.Add("PlayerPosition", 4, 1);
             Debug.Add("Exists", 5, 2);
-            Debug.Add("ChildPosition", 7, 1);
+            Debug.Add("Selector", 7, 1);
+            loaded = true;
 
             base.OnLoad();
         }
@@ -159,6 +181,7 @@ namespace CavingSimulator2
             shaderPrograms.UnUseProgram();
             shaderPrograms.Remove("object");
             shaderPrograms.Remove("block");
+            shaderPrograms.Remove("UI");
             base.OnUnload();
         }
 
@@ -167,8 +190,8 @@ namespace CavingSimulator2
             Game.input = KeyboardState;
             Game.cursorState = CursorState;
             Game.mouse = MouseState;
-            Game.deltaTime = ((float)e.Time);
-            Game.physicsSpace.Timestep(Game.deltaTime);
+            Game.deltaTime = ((float)e.Time > 0.1f ? 0.1f: (float)e.Time);
+            if(loaded) Game.physicsSpace.Timestep(Game.deltaTime);
             if (firstFrame)
             {
                 this.threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
@@ -199,12 +222,6 @@ namespace CavingSimulator2
             Debug.WriteLine("StaticsCount", 0, "ActiceCount: " + Game.physicsSpace.Bodies.ActiveSet.Count);
             Debug.WriteLine("LoadedChunkCount", 0, "Loaded Chunks:" + ChunkGenerator.chunks.Count);
             Debug.WriteLine("BlocksClollidersCount", 0, "BlocksClollidersCount:" + BlocksDir.colliderBlocks.Count);
-            //Debug.WriteLine("ChildPosition", 0, String.Format("Child Position: {0,8:F2} {1,8:F2} {2,8:F2}",
-            //    (double)(Game.objects[playerid] as PlayerCabin).parts[new Vector3i(1, 0, 0)].transform.Position.X,
-            //    (double)(Game.objects[playerid] as PlayerCabin).parts[new Vector3i(1, 0, 0)].transform.Position.Y,
-            //    (double)(Game.objects[playerid] as PlayerCabin).parts[new Vector3i(1, 0, 0)].transform.Position.Z));
-            //Debug.WriteLine("Exists", 0, "Exists:" + BlocksDir.exist);
-            //Debug.WriteLine("Exists", 1, "NotExists:" + BlocksDir.notExits);
             /////////////////////////////////////////////////////
 
             Camera.Update();
@@ -218,10 +235,8 @@ namespace CavingSimulator2
 
             Camera.Update();
             GL.Enable(EnableCap.DepthTest);
-            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            //GL.Enable(EnableCap.Blend);
             GL.DepthMask(true);
-            GL.DepthFunc(DepthFunction.Less);
+            GL.DepthFunc(DepthFunction.Lequal);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +252,7 @@ namespace CavingSimulator2
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Game.shaderPrograms.UseProgram("object");
-            Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(20f, 20f, 20f) + (Game.objects[playerid] as PlayerCabin).transform.Position);
+            //Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(20f, 20f, 20f) + (Game.objects[playerid] as PlayerCabin).transform.Position);
             Game.shaderPrograms.Current.SetUniform("View", ref Game.view);
 
             foreach (BaseObject baseObject in objects.Values) baseObject.Render();
@@ -245,11 +260,21 @@ namespace CavingSimulator2
             Game.shaderPrograms.UnUseProgram();
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.Blend);
+            Game.shaderPrograms.UseProgram("UI");
             
+            Game.UI.Render();
+            Game.shaderPrograms.UnUseProgram();
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Disable(EnableCap.Blend);
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
             Context.SwapBuffers();
 
-            //Debug.Render();
+            Debug.Render();
 
             base.OnRenderFrame(e);
 

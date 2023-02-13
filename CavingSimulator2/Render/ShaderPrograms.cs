@@ -10,7 +10,7 @@ namespace CavingSimulator2.Render
     public class ShaderPrograms
     {
         private Dictionary<string, ShaderProgram> shaderPrograms = new Dictionary<string, ShaderProgram>();
-        private int incrementer = 0;
+
         public string Use { get; private set; }
 
         public ShaderProgram this[string key]

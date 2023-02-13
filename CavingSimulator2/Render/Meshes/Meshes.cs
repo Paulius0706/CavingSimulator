@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator2.Render.Meshes
 {
+    /// <summary>
+    /// Place where blender meshes are stored
+    /// </summary>
     public class Meshes
     {
         private Dictionary<string, MeshBuffer> meshes = new Dictionary<string, MeshBuffer>();

@@ -218,10 +218,10 @@ namespace CavingSimulator2.GameLogic.Components
             {
                 foreach (int key in meshes.Keys)
                 {
-                    VertexPCI[] positions = blocks.Values.
+                    VertexPCT[] positions = blocks.Values.
                         Where(block => block.mesh[key] == '0').
                         Select(block => 
-                            new VertexPCI(
+                            new VertexPCT(
                                 (Vector3)block.position ,
                                 Game.blockMeshes.SetColor(block.mesh,key),
                                 //new Color4(1f, 1f, 1f, 1f),
@@ -229,7 +229,7 @@ namespace CavingSimulator2.GameLogic.Components
                     if(positions.Length > 0)
                     {
                         meshes[key].active = true;
-                        meshes[key].instanceBuffer = new VertexBuffer(VertexPCI.VertexInfo, positions.Length, BufferUsageHint.StaticDraw);
+                        meshes[key].instanceBuffer = new VertexBuffer(VertexPCT.VertexInfo, positions.Length, BufferUsageHint.StaticDraw);
                         meshes[key].instanceBuffer.SetData(ref positions, positions.Length);
 
                         GL.BindVertexArray(meshes[key].vertexArray.VertexArrayHandle);
@@ -240,24 +240,24 @@ namespace CavingSimulator2.GameLogic.Components
                             VertexPCTOTI.VertexInfo.VertexAttributes[3].Index,
                             VertexPCTOTI.VertexInfo.VertexAttributes[3].ComponentCount,
                             VertexAttribPointerType.Float, false,
-                            VertexPCI.VertexInfo.SizeInBytes,
-                            VertexPCI.VertexInfo.VertexAttributes[0].Offset);
+                            VertexPCT.VertexInfo.SizeInBytes,
+                            VertexPCT.VertexInfo.VertexAttributes[0].Offset);
                         GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[3].Index);
 
                         GL.VertexAttribPointer(
                             VertexPCTOTI.VertexInfo.VertexAttributes[1].Index,
                             VertexPCTOTI.VertexInfo.VertexAttributes[1].ComponentCount,
                             VertexAttribPointerType.Float, false,
-                            VertexPCI.VertexInfo.SizeInBytes,
-                            VertexPCI.VertexInfo.VertexAttributes[1].Offset);
+                            VertexPCT.VertexInfo.SizeInBytes,
+                            VertexPCT.VertexInfo.VertexAttributes[1].Offset);
                         GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[1].Index);
 
                         GL.VertexAttribPointer(
                             VertexPCTOTI.VertexInfo.VertexAttributes[4].Index,
                             VertexPCTOTI.VertexInfo.VertexAttributes[4].ComponentCount,
                             VertexAttribPointerType.Float, false,
-                            VertexPCI.VertexInfo.SizeInBytes,
-                            VertexPCI.VertexInfo.VertexAttributes[2].Offset);
+                            VertexPCT.VertexInfo.SizeInBytes,
+                            VertexPCT.VertexInfo.VertexAttributes[2].Offset);
                         GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[4].Index);
 
 

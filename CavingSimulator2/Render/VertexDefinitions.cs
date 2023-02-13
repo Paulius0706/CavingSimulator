@@ -32,19 +32,19 @@ namespace CavingSimulator2.Render
             this.Normal = Normal;
         }
     }
-    public struct VertexPCI
+    public struct VertexPCT
     {
         public readonly Vector3 Position;
         public readonly Color4 Color;
         public readonly float Texture;
 
-        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCI), new VertexAttribute[] {
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCT), new VertexAttribute[] {
             new VertexAttribute("Position",0,3,0),
             new VertexAttribute("Color",1,4,3 * sizeof(float)),
             new VertexAttribute("TextureId",2,1,7 * sizeof(float)),
         });
 
-        public VertexPCI(Vector3 Position, Color4 Color, float Texture)
+        public VertexPCT(Vector3 Position, Color4 Color, float Texture)
         {
             this.Position = Position;
             this.Color = Color;
@@ -79,16 +79,23 @@ namespace CavingSimulator2.Render
             this.VertexId = VertexId;
         }
     }
-    public struct VertexP
+    public struct VertexPCTp
     {
         public readonly Vector3 Position;
+        public readonly Color4 Color;
+        public readonly Vector2 Texture;
+        
 
-        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexP), new VertexAttribute[] {
-            new VertexAttribute("Position",0,3,0)
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPCTp), new VertexAttribute[] {
+            new VertexAttribute("Position",0,3,0),
+            new VertexAttribute("Color",1,4,3 * sizeof(float)),
+            new VertexAttribute("Texture",2,2,7 * sizeof(float))
         });
-        public VertexP(Vector3 Position)
+        public VertexPCTp(Vector3 Position, Color4 Color, Vector2 Texture)
         {
             this.Position = Position;
+            this.Color = Color;
+            this.Texture = Texture;
         }
     }
     
