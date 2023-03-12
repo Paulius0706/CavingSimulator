@@ -18,6 +18,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         public Keys key;
         public GyroScope(Transform transform, Vector3 localRotation, float force, Vector3 targetRotation, Keys key = Keys.Unknown) : base()
         {
+            ImageName = "gyroImage";
             this.active = true;
             this.transform = transform;
             this.localRotation = localRotation;
@@ -30,6 +31,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         }
         public GyroScope(Vector3 localRotation, float force, Vector3 targetRotation, Keys key = Keys.Unknown) : base()
         {
+            ImageName = "gyroImage";
             this.active = true;
             this.transform = new Transform(Vector3.Zero);
             this.localRotation = localRotation;
@@ -43,8 +45,10 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
-            transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
-            transform.Rotation = this.parentTransform.Rotation + this.localRotation;
+            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            transform.Position = this.parentTransform.Position + localPos;
+            var qRotation = (Quaternion.FromEulerAngles(this.parentTransform.Rotation) * Quaternion.FromEulerAngles(this.localRotation));
+            transform.Rotation = qRotation.ToEulerAngles();
 
             if (key != Keys.Unknown && Game.input.IsKeyDown(key)) { active = !active; }
             if (active)
@@ -55,6 +59,10 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
                 Vector3 rotationForce = rotationTargetDelta.Normalized() * force * Game.deltaTime;
                 parentRigbody.AddAngularVelocity(rotationForce);
             }
+        }
+        public override Part Create()
+        {
+            return new GyroScope(localRotation, force,targetRotation, key);
         }
     }
 }

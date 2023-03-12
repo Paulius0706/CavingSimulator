@@ -21,6 +21,7 @@ namespace CavingSimulator2.GameLogic.UI.Views
             Vector2 lineSize = new Vector2(size * ((float)count+1f), size);
             Vector2 lowerCorner = center - lineSize / 2f;
             views.Add("Line", new ItemsLine("placeHolder", lowerCorner, lineSize,count,size));
+            views.Add("Info", new ItemTextInfo("ItemInfo",new Vector2(50f,Game.ViewPortSize.Y -50f)));
         }
     }
 }

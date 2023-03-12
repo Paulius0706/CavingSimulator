@@ -3,6 +3,7 @@ using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components.Physics;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,6 +15,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
     public abstract class Part : BaseObject
     {
+        public string ImageName = "";
         public Transform transform;
         protected Renderer renderer;
         protected RigBody rigBody;
@@ -22,6 +24,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         public Vector3i localPosition;
         public Vector3 localRotation = Vector3.Zero;
         public ShapeType colliderShape = ShapeType.box;
+        public Keys key;
 
         public Part() { }
 
@@ -36,6 +39,11 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         }
 
         public override bool TryGetRigBody(out RigBody rigBody) { rigBody = this.rigBody; return true; }
+
+        public virtual Part Create()
+        {
+            return null;
+        }
 
         protected override void AbstractDispose()
         {

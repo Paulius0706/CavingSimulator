@@ -17,6 +17,8 @@ namespace CavingSimulator2.GameLogic.Components.Physics
     public class RigBody
     {
         public readonly Transform transform;
+        public Vector3 centerOffset;
+        public Vector3 worldCenterOffset;
         private BodyHandle bodyHandle;
         private BodyReference bodyReference;
         private TypedIndex shapeHandle;
@@ -74,8 +76,10 @@ namespace CavingSimulator2.GameLogic.Components.Physics
 
         private void UpdateTransform()
         {
-            transform.Position = Position;
             transform.Rotation = Rotation;
+            worldCenterOffset = new Vector3(new Vector4(centerOffset) * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.Rotation)));
+            transform.Position = Position - worldCenterOffset;
+            
         }
         private void UpdateBlocks()
         {
@@ -103,7 +107,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         public void AddForce(Vector3 worldPosition, Vector3 force)
         {
 
-            Game.physicsSpace.Bodies[bodyHandle].ApplyImpulse(Adapter.Convert(force), Adapter.Convert(worldPosition));
+            Game.physicsSpace.Bodies[bodyHandle].ApplyImpulse(Adapter.Convert(force), Adapter.Convert(worldPosition - worldCenterOffset));
             bodyReference.Awake = true;
         }
         public void AddAngularVelocity(Vector3 force)
@@ -149,12 +153,12 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                     case ShapeType.slope: compoundBuilder.Add(new Slope(1f, 1f, 1f), new RigidPose(info.position, info.rotation), info.mass); break;
                 }
             }
-            compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia);//, out System.Numerics.Vector3 center);
+            compoundBuilder.BuildDynamicCompound(out Buffer<CompoundChild> children, out BodyInertia bodyInertia, out System.Numerics.Vector3 center);
             
             TypedIndex newShapeHandle = Game.physicsSpace.Shapes.Add(new BigCompound(children, Game.physicsSpace.Shapes, Game.bufferPool));
 
-            System.Numerics.Vector3 position = Adapter.Convert(transform.Position);
-            System.Numerics.Quaternion orentation = Adapter.Convert(new Quaternion(transform.Rotation));
+            System.Numerics.Vector3 position = bodyReference.Pose.Position;
+            System.Numerics.Quaternion orentation = bodyReference.Pose.Orientation;
 
             bodyReference.ApplyDescription(
                 BodyDescription.CreateDynamic(
@@ -165,6 +169,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 );
             bodyReference.Pose.Position = position;
             bodyReference.Pose.Orientation = orentation;
+            centerOffset = Adapter.Convert(center);
 
 
 

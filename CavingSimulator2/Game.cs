@@ -135,12 +135,18 @@ namespace CavingSimulator2
             Game.textures.Add("itemFrame", new Texture("Render/Images/GimbalFrame.png"));
             Game.textures.Add("itemBackGround", new Texture("Render/Images/TrusterDebug.png"));
 
+            Game.textures.Add("frameImage", new Texture("Render/Images/FrameImage.png"));
+            Game.textures.Add("thrusterImage", new Texture("Render/Images/ThrusterImage.png"));
+            Game.textures.Add("gimbalImage", new Texture("Render/Images/GimbalFrameImage.png"));
+            Game.textures.Add("gyroImage", new Texture("Render/Images/TrusterDebug.png"));
+
             Game.textures.Add("frame", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("grassBlock", new Texture("Render/Images/grass_block.png"));
             Game.textures.Add("gimbal", new Texture("Render/Images/GimbalFrame.png"));
             Game.textures.Add("gyroscope", new Texture("Render/Images/GimbalFrame.png"));
             Game.textures.Add("truster", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("selector", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("font", new Texture("Render/Images/font4.png"));
 
             // Add Meshes from blender
             Game.meshes.Add("frame", "Render/Models/Frame.obj", "frame");
@@ -222,6 +228,11 @@ namespace CavingSimulator2
             Debug.WriteLine("StaticsCount", 0, "ActiceCount: " + Game.physicsSpace.Bodies.ActiveSet.Count);
             Debug.WriteLine("LoadedChunkCount", 0, "Loaded Chunks:" + ChunkGenerator.chunks.Count);
             Debug.WriteLine("BlocksClollidersCount", 0, "BlocksClollidersCount:" + BlocksDir.colliderBlocks.Count);
+            if((Game.objects[playerid] as PlayerCabin).selector is not null)
+            Debug.WriteLine("Selector", 0, String.Format("Look Rotation: {0,8:F2} {1,8:F2} {2,8:F2}",
+                (double)(Game.objects[playerid] as PlayerCabin).selector.lookRotation.X,
+                (double)(Game.objects[playerid] as PlayerCabin).selector.lookRotation.Y,
+                (double)(Game.objects[playerid] as PlayerCabin).selector.lookRotation.Z));
             /////////////////////////////////////////////////////
 
             Camera.Update();

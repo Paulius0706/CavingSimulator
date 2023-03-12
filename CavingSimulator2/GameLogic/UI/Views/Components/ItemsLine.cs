@@ -1,4 +1,5 @@
 ﻿using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
+using CavingSimulator2.Render.Meshes;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -36,13 +37,40 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
                 views["cursor"].Dispose();
                 views.Remove("cursor");
                 views.Add("cursor", 
-                    new Cursor("cursor", 
-                        new Vector2(this.LowerPosition.X + this.frameSize * index + gapLenght * index - frameSize * 0.1f, lowerHeight - frameSize * 0.1f), 
+                    new Cursor(
+                        "cursor", 
+                        new Vector2(
+                            this.LowerPosition.X + this.frameSize * index + gapLenght * index - frameSize * 0.1f,
+                            lowerHeight - frameSize * 0.1f
+                            ), 
                         new Vector2(frameSize * 1.2f, frameSize * 1.2f)
                         )
                     );
             }
-
+        }
+        public void AddImage(int index, string imageName)
+        {
+            if (views.ContainsKey("frame" + index) && views["frame" + index] is not null)
+            {
+                ItemHolder itemHolder = (ItemHolder)views["frame" + index];
+                if (itemHolder.item is null)
+                {
+                    itemHolder.imageName = imageName;
+                    itemHolder.item = new UIMesh(Game.textures.GetIndex(imageName), itemHolder.upperPosition, itemHolder.lowerPosition, 1f);
+                }
+            }
+        }
+        public void RemoveImage(int index, string notDelete)
+        {
+            if (views.ContainsKey("frame" + index) && views["frame" + index] is not null )
+            {
+                ItemHolder itemHolder = (ItemHolder)views["frame" + index];
+                if(itemHolder.item is not null && itemHolder.imageName != notDelete)
+                {
+                    itemHolder.item.Dispose();
+                    itemHolder.item = null;
+                }
+            }
         }
         
     }

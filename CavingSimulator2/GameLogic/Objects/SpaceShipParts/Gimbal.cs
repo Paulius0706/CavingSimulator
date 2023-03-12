@@ -17,6 +17,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         public Keys key;
         public Gimbal(Transform transform, Vector3 forceDirection, Keys key = Keys.Unknown) : base()
         {
+            ImageName = "gimbalImage";
             this.transform = transform;
             this.forceDirection = forceDirection;
             this.key = key;
@@ -26,6 +27,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         }
         public Gimbal(Vector3 forceDirection, Keys key = Keys.Unknown) : base()
         {
+            ImageName = "gimbalImage";
             this.transform = new Transform(Vector3.Zero);
             this.forceDirection = forceDirection;
             this.key = key;
@@ -36,13 +38,19 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
-            transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            transform.Position = this.parentTransform.Position + localPos;
             transform.Rotation = this.parentTransform.Rotation;
             
             if(key == Keys.Unknown || Game.input.IsKeyDown(key))
             {
-                parentRigbody.AddForce(transform.Position - parentTransform.Position, forceDirection * Game.deltaTime);
+                parentRigbody.AddForce(localPos, forceDirection * Game.deltaTime);
+                //parentRigbody.AddForce(transform.Position - parentTransform.Position, forceDirection * Game.deltaTime);
             }
+        }
+        public override Part Create()
+        {
+            return new Gimbal(forceDirection, key);
         }
     }
 }

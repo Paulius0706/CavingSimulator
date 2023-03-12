@@ -37,10 +37,20 @@ namespace CavingSimulator2.Debugger
             Console.CursorTop = lastrow;
             Console.CursorLeft = 0;
             Console.WriteLine(new string('=', Console.WindowWidth));
-            for(int i=Math.Min(logs.Count-1, 8); i >= 0; i--)
+            int i = logs.Count - 1;
+            while(i > -1 && i > logs.Count - 1 - 8)
             {
-                Console.WriteLine(logs[i]);
+                string str = logs[i];
+                int buffer = Console.WindowWidth - logs[i].Length - 2;
+                if (buffer > 0) str += new string(' ', buffer);
+                Console.WriteLine(str);
+                //Console.WriteLine(logs[i] + new string(' ', Console.WindowLeft - logs[i].Length - 2));
+                i--;
             }
+            //for(int i=0; i >= Math.Min(logs.Count - 1, 8); i++)
+            //{
+            //    Console.WriteLine(logs[i]);
+            //}
         }
     }
 }

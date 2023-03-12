@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CavingSimulator2.Render.Meshes;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
@@ -16,6 +17,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public Frame(Transform transform) : base()
         {
+            ImageName = "frameImage";
             this.transform = transform;
 
             this.renderer = new Renderer();
@@ -23,6 +25,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         }
         public Frame() : base()
         {
+            ImageName = "frameImage";
             this.transform = new Transform(Vector3.Zero);
 
             this.renderer = new Renderer();
@@ -33,6 +36,11 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         {
             transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
             transform.Rotation = this.parentTransform.Rotation;
+        }
+
+        public override Part Create()
+        {
+            return new Frame();
         }
     }
 }
