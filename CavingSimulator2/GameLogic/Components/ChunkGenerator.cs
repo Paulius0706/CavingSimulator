@@ -9,6 +9,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,16 +19,22 @@ namespace CavingSimulator2.GameLogic.Components
 {
     public class ChunkGenerator
     {
-        Transform transform;
+        public static SemaphoreSlim GlLocker = new SemaphoreSlim(1,1);
+
+        public static Transform transform;
 
         public static Dictionary<Vector3i, Chunk> chunks = new Dictionary<Vector3i, Chunk>();
         public Queue<Vector3i> chunkMeshUpdates = new Queue<Vector3i>();
         public static FastNoise noise = new FastNoise();
         public int loadDistance = 8;
+        public int currentLoadDistance = 8;
+        public int loadDistanceAnalizerOpinion = 0;
+        public int loadDistanceAnalizerLimit = 120;
+
 
         public ChunkGenerator(Transform transform)
         {
-            this.transform = transform;
+            ChunkGenerator.transform = transform;
             noise.UsedNoiseType = FastNoise.NoiseType.Value;
 
             noise.Frequency = 0.05f;
@@ -40,12 +47,25 @@ namespace CavingSimulator2.GameLogic.Components
 
         public void Update()
         {
-            //Console.WriteLine(chunks.Count);
+            
+
             targetChunk = getTargetChunk(transform.Position);
-            //Console.WriteLine(targetChunk + " " + gameObject.Transform.GlobalPosition);
-            for (int x = -loadDistance; x <= loadDistance; x++)
+            
+            if (Game.FPS >= 60) { loadDistanceAnalizerOpinion++; }
+            if (Game.FPS <= 60) { loadDistanceAnalizerOpinion--; }
+            if(loadDistanceAnalizerOpinion >= loadDistanceAnalizerLimit)
             {
-                for (int y = -loadDistance; y <= loadDistance; y++)
+                currentLoadDistance = currentLoadDistance < loadDistance ? currentLoadDistance + 1 : loadDistance;
+            }
+            if (loadDistanceAnalizerOpinion <= -loadDistanceAnalizerLimit)
+            {
+                currentLoadDistance = currentLoadDistance > 3 ? currentLoadDistance - 1 : 3;
+            }
+
+
+            for (int x = -currentLoadDistance; x <= currentLoadDistance; x++)
+            {
+                for (int y = -currentLoadDistance; y <= currentLoadDistance; y++)
                 {
                     Vector3i pos = new Vector3i((int)targetChunk.X + x, (int)targetChunk.Y + y, 0);
                     
@@ -53,7 +73,6 @@ namespace CavingSimulator2.GameLogic.Components
                     {
                         chunks.Add(pos, new Chunk(pos));
                         
-                        // TODO: there should be bug when loading few chunks at the time
                         if (chunks.ContainsKey(pos + Vector3i.UnitX)) chunkMeshUpdates.Enqueue(pos + Vector3i.UnitX);
                         if (chunks.ContainsKey(pos - Vector3i.UnitX)) chunkMeshUpdates.Enqueue(pos - Vector3i.UnitX);
                         if (chunks.ContainsKey(pos + Vector3i.UnitY)) chunkMeshUpdates.Enqueue(pos + Vector3i.UnitY);
@@ -61,7 +80,6 @@ namespace CavingSimulator2.GameLogic.Components
                     }
                 }
             }
-            // unsafe
             if (chunkMeshUpdates.Count > 0)
             {
                 Vector3i chunk = chunkMeshUpdates.Dequeue();
@@ -77,9 +95,10 @@ namespace CavingSimulator2.GameLogic.Components
                     chunks.Remove(key);
                 }
             }
-            
-
-            foreach (Chunk chunk in chunks.Values){ chunk.Update(); }
+            foreach (Chunk chunk in chunks.Values)
+            {
+                chunk.Update(); 
+            }
         }
         public void Render()
         {

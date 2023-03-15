@@ -47,6 +47,7 @@ namespace CavingSimulator2
 
         public static KeyboardState input;
         public static MouseState mouse;
+        public static int FPS = 0;
         public static CursorState cursorState = CursorState.Normal;
         public static Vector2 mouseMoveDelta = Vector2.Zero;
         public static float deltaTime = 0;
@@ -54,6 +55,7 @@ namespace CavingSimulator2
         public static Matrix4 view = Matrix4.Identity;
 
         private int fpsCounter = 0;
+        
         private float second = 0;
         private int playerid = -1;
         private bool firstFrame = true;
@@ -112,7 +114,7 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("Model", ref model);
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
-            Game.shaderPrograms.Current.SetUniform("LightPos", new Vector3(20f, 20f, 20f));
+            Game.shaderPrograms.Current.SetUniform("LightPos", Vector3.Normalize(new Vector3(1f, 1f, 1f)));
             Game.shaderPrograms.UnUseProgram();
 
             // Add MeshSize View Projection to object shader
@@ -215,7 +217,9 @@ namespace CavingSimulator2
 
             foreach (BaseObject baseObject in objects.Values) baseObject.Update();
 
+            Game.FPS = (int)(1f / Game.deltaTime);
             this.fpsCounter++;
+
             this.second += Game.deltaTime;
             if(second > 1f) 
             {
