@@ -43,5 +43,9 @@ namespace CavingSimulator2.Helpers
         public static bool Back { get { return Game.input.IsKeyPressed(Keys.S) || Game.input.IsKeyPressed(Keys.Down); } }
         public static bool Up { get { return Game.input.IsKeyPressed(Keys.Space); } }
         public static bool Down { get { return Game.input.IsKeyPressed(Keys.LeftShift); } }
+
+        public static bool RorateRight { get { return Game.input.IsKeyPressed(Keys.E); } }
+        public static bool RorateLeft { get { return Game.input.IsKeyPressed(Keys.Q); } }
+
     }
 }

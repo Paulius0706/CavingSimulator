@@ -146,7 +146,9 @@ namespace CavingSimulator2
             Game.textures.Add("gyroscope", new Texture("Render/Images/GimbalFrame.png"));
             Game.textures.Add("truster", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("selector", new Texture("Render/Images/TrusterDebug.png"));
-            Game.textures.Add("font", new Texture("Render/Images/font4.png"));
+            Game.textures.Add("white", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("debugFont", new Texture("Render/Images/DebugFont.png"));
+            Game.textures.Add("font", new Texture("Render/Images/Font.png"));
 
             // Add Meshes from blender
             Game.meshes.Add("frame", "Render/Models/Frame.obj", "frame");

@@ -1,6 +1,8 @@
 ﻿using CavingSimulator.GameLogic.Components;
 using CavingSimulator2.Debugger;
 using CavingSimulator2.GameLogic.Components.Physics;
+using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
+using CavingSimulator2.GameLogic.UI.Views.Components;
 using CavingSimulator2.Helpers;
 using CavingSimulator2.Render;
 using CavingSimulator2.Render.Meshes;
@@ -11,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static CavingSimulator2.GameLogic.Components.Inventory;
 
 namespace CavingSimulator2.GameLogic.Objects
 {
@@ -26,14 +29,17 @@ namespace CavingSimulator2.GameLogic.Objects
         public Vector3i Xaxis;
         public Vector3i Yaxis;
         public Vector3i Zaxis;
+        public Vector3 lookAxis;
         public Vector3 lookRotation;
 
         public Renderer renderer;
         public Transform transform;
         public bool KeyBind = false;
+        public PlayerCabin playerCabin;
 
-        public Selector(Transform parentTransform)
+        public Selector(Transform parentTransform , PlayerCabin playerCabin)
         {
+            this.playerCabin = playerCabin;
             this.parentTransform = parentTransform;
             this.transform = new Transform(Vector3.Zero);
             this.transform.Scale = scale * Vector3.One;
@@ -70,7 +76,7 @@ namespace CavingSimulator2.GameLogic.Objects
             Vector3 look = new Vector3(new Vector4(Camera.lookToPoint) * Matrix4.CreateFromQuaternion(new Quaternion(-this.parentTransform.Rotation)));
 
 
-            Vector3i lookAxis = Vector3i.UnitY;
+            lookAxis = Vector3i.UnitY;
             if (MathF.Abs(look.X) > MathF.Abs(look.Y) && MathF.Abs(look.X) > MathF.Abs(look.Z)) lookAxis = look.X > 0 ? Vector3i.UnitX : -Vector3i.UnitX;
             if (MathF.Abs(look.Z) > MathF.Abs(look.Y) && MathF.Abs(look.Z) > MathF.Abs(look.X)) lookAxis = look.Z > 0 ? Vector3i.UnitZ : -Vector3i.UnitZ;
             if (MathF.Abs(look.Y) > MathF.Abs(look.Z) && MathF.Abs(look.Y) > MathF.Abs(look.X)) lookAxis = look.Y > 0 ? Vector3i.UnitY : -Vector3i.UnitY;
@@ -89,29 +95,69 @@ namespace CavingSimulator2.GameLogic.Objects
                 if (Inputs.Up)
                 {
                     localPosition += Zaxis;
+                    UpdateUI();
                 }
                 if (Inputs.Down)
                 {
                     localPosition -= Zaxis;
+                    UpdateUI();
                 }
 
                 if (Inputs.Right)
                 {
                     localPosition += Xaxis;
+                    UpdateUI();
                 }
                 if (Inputs.Left)
                 {
                     localPosition -= Xaxis;
+                    UpdateUI();
                 }
 
                 if (Inputs.Forward)
                 {
                     localPosition += Yaxis;
+                    UpdateUI();
                 }
                 if (Inputs.Back)
                 {
                     localPosition -= Yaxis;
+                    UpdateUI();
                 }
+                if (playerCabin.parts.ContainsKey(localPosition))
+                {
+                    if (Inputs.RorateRight)
+                    {
+
+                        playerCabin.parts[localPosition].localRotation = playerCabin.parts[localPosition].localRotation + Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(90f)).ToEulerAngles();
+                    }
+                    if (Inputs.RorateLeft)
+                    {
+
+                        playerCabin.parts[localPosition].localRotation = playerCabin.parts[localPosition].localRotation + Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(-90f)).ToEulerAngles();
+                    }
+                }
+            }
+        }
+        public void UpdateUI()
+        {
+            if (Game.UI.Current is not null)
+            {
+                ItemInfo itemInfo = Game.UI.GetView<ItemInfo>("ItemInfo");
+                if (!playerCabin.parts.ContainsKey(localPosition) && itemInfo != null)
+                {
+                    itemInfo.empty = true;
+                }
+                if (playerCabin.parts.ContainsKey(localPosition) && itemInfo != null)
+                {
+                    itemInfo.empty = false;
+                    itemInfo.UpdateValue(ItemInfo.Label.name, playerCabin.parts[localPosition].GetType().Name);
+                    itemInfo.UpdateValue(ItemInfo.Label.key, playerCabin.parts[localPosition].key.ToString());
+                    itemInfo.UpdateValue(ItemInfo.Label.toggle, "");
+                    itemInfo.UpdateValue(ItemInfo.Label.position, "X:" + localPosition.X + " Y:" + localPosition.Y + " Z:" + localPosition.Z);
+
+                }
+
             }
         }
         private Vector3i GetAxis(Vector3 vector)

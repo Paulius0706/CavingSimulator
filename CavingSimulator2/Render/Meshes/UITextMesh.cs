@@ -26,15 +26,15 @@ namespace CavingSimulator2.Render.Meshes
 
         public List<UIMesh> letters = new List<UIMesh>();
 
-        public UITextMesh(string str, Vector2 firstLetterUpperPosition, Vector2 firstLetterLowerPosition, float depth)
+        public UITextMesh(string str, Vector2 firstLetterUpperPosition, Vector2 firstLetterLowerPosition,Color4 color, float depth)
         {
             for(int i = 0; i< str.Length;i++)
             {
                 char character = str[i];
                 GetTexturePos(character, out Vector2 textureLowerPosition, out Vector2 textureUpperPosition);
-                Vector2 lowerPosition = firstLetterLowerPosition + Vector2.UnitX * Math.Abs(firstLetterUpperPosition.X - firstLetterLowerPosition.X) * i;
-                Vector2 upperPosition = firstLetterUpperPosition + Vector2.UnitX * Math.Abs(firstLetterUpperPosition.X - firstLetterLowerPosition.X) * i;
-                UIMesh letter = new UIMesh(Game.textures.GetIndex(Character_Set_Name), lowerPosition, upperPosition, textureLowerPosition, textureUpperPosition, 1f);
+                Vector2 lowerPosition = firstLetterLowerPosition + Vector2.UnitX * Math.Abs(firstLetterUpperPosition.X - firstLetterLowerPosition.X)  * i;
+                Vector2 upperPosition = firstLetterUpperPosition + Vector2.UnitX * Math.Abs(firstLetterUpperPosition.X - firstLetterLowerPosition.X)  * i;
+                UIMesh letter = new UIMesh(Game.textures.GetIndex(Character_Set_Name), lowerPosition, upperPosition, textureLowerPosition, textureUpperPosition, color, 1f);
                 letters.Add(letter);
             }
         }
@@ -42,20 +42,29 @@ namespace CavingSimulator2.Render.Meshes
         {
             lowerPosition = new Vector2();
             upperPostion = new Vector2();
+            
             int pos = character;
-            //int height = pos / Real_Letters_Width_Count;
-            int height = (int)Math.Ceiling((float)pos / (float)Real_Letters_Width_Count);
+            if (character == ' ') pos = 0;
+            //int height = (int)Math.Ceiling((float)pos / (float)Real_Letters_Width_Count);
+            int height = pos / Real_Letters_Width_Count;
             int width = pos % Real_Letters_Width_Count;
             height += Real_Letters_Height_Start;
             width += Real_Letters_Width_Start;
 
+
+
             float letterWidth = 1f / Letters_Width_Count;
-            float LetterHeight = 1f / Letters_Height_Count;
+            float letterHeight = 1f / Letters_Height_Count;
 
             lowerPosition.X = letterWidth * width;
-            lowerPosition.Y = 1f - (LetterHeight * height - LetterHeight * 0.15f);
+            lowerPosition.Y = 1f - letterHeight - (letterHeight * height);
             upperPostion.X = lowerPosition.X + letterWidth;
-            upperPostion.Y = lowerPosition.Y + LetterHeight;
+            upperPostion.Y = lowerPosition.Y + letterHeight;
+
+            lowerPosition.X += letterWidth * 0.2f;
+            upperPostion.X -= letterWidth * 0.2f;
+            lowerPosition.Y += letterHeight * 0.15f;
+            //upperPostion.Y -= letterHeight * 0.1f;
         }
 
         public void Render()

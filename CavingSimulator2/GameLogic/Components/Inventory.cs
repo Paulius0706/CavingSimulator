@@ -145,6 +145,7 @@ namespace CavingSimulator2.GameLogic.Components
                 { 
                     playerCabin.parts[playerCabin.selector.localPosition].key = key;
                     Debug.WriteLine(playerCabin.parts[playerCabin.selector.localPosition].GetType().Name + " <= " + key);
+                    playerCabin.selector.UpdateUI();
                 }
             }
             

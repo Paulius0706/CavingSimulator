@@ -15,7 +15,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         public Vector3 targetRotation;
         public float force;
         public bool active;
-        public Keys key;
+        //public Keys key;
         public GyroScope(Transform transform, Vector3 localRotation, float force, Vector3 targetRotation, Keys key = Keys.Unknown) : base()
         {
             ImageName = "gyroImage";

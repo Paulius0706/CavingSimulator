@@ -14,7 +14,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
     public class Gimbal : Part
     {
         public Vector3 forceDirection;
-        public Keys key;
+        //public Keys key;
         public Gimbal(Transform transform, Vector3 forceDirection, Keys key = Keys.Unknown) : base()
         {
             ImageName = "gimbalImage";

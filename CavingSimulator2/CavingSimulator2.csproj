@@ -25,7 +25,10 @@
     <None Update="Render\Images\container.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Render\Images\font4.png">
+    <None Update="Render\Images\DebugFont.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Render\Images\Font.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Render\Images\FrameImage.png">

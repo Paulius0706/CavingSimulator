@@ -138,7 +138,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
                 if (selector != null) { selector.Dispose(); selector = null; }
                 else
                 {
-                    selector = new Selector(this.transform);
+                    selector = new Selector(this.transform, this);
                     selector.frozenPos = this.transform.Position;
                     selector.frozenRotation = this.transform.Rotation;
                     rigBody.AngularVelocity = Vector3.Zero;

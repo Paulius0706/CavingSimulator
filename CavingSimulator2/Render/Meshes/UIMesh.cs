@@ -51,16 +51,16 @@ namespace CavingSimulator2.Render.Meshes
             vertexBuffer.SetSubData(ref vertices, vertices.Length);
             indexBuffer.SetData(indices, indices.Length);
         }
-        public UIMesh(int textureID, Vector2 upperPosition, Vector2 lowerPosition, Vector2 textureLowerPosition, Vector2 textureUpperPosition, float depth)
+        public UIMesh(int textureID, Vector2 upperPosition, Vector2 lowerPosition, Vector2 textureLowerPosition, Vector2 textureUpperPosition,Color4 color, float depth)
         {
             this.depth = depth;
             this.textureID = textureID;
             indices = new int[6] { 0, 1, 2, 0, 2, 3 };
             vertices = new VertexPCTp[verticesCount];
-            vertices[0] = new VertexPCTp(new Vector3(lowerPosition.X, upperPosition.Y, 0f), Color4.White, new Vector2(textureLowerPosition.X, textureUpperPosition.Y));
-            vertices[1] = new VertexPCTp(new Vector3(upperPosition.X, upperPosition.Y, 0f), Color4.White, textureUpperPosition);
-            vertices[2] = new VertexPCTp(new Vector3(upperPosition.X, lowerPosition.Y, 0f), Color4.White, new Vector2(textureUpperPosition.X, textureLowerPosition.Y));
-            vertices[3] = new VertexPCTp(new Vector3(lowerPosition.X, lowerPosition.Y, 0f), Color4.White, textureLowerPosition);
+            vertices[0] = new VertexPCTp(new Vector3(lowerPosition.X, upperPosition.Y, 0f), color, new Vector2(textureLowerPosition.X, textureUpperPosition.Y));
+            vertices[1] = new VertexPCTp(new Vector3(upperPosition.X, upperPosition.Y, 0f), color, textureUpperPosition);
+            vertices[2] = new VertexPCTp(new Vector3(upperPosition.X, lowerPosition.Y, 0f), color, new Vector2(textureUpperPosition.X, textureLowerPosition.Y));
+            vertices[3] = new VertexPCTp(new Vector3(lowerPosition.X, lowerPosition.Y, 0f), color, textureLowerPosition);
 
             vertexBuffer = new VertexBuffer(VertexPCTp.VertexInfo, vertices.Length, BufferUsageHint.StaticDraw);
             indexBuffer = new IndexBuffer(indicesCount, BufferUsageHint.StaticDraw);
