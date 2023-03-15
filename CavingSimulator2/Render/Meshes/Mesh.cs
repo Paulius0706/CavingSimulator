@@ -21,7 +21,7 @@ namespace CavingSimulator2.Render.Meshes
 
         private Vector3 lastPosition = Vector3.Zero;
         private Vector3 lastScale = Vector3.Zero;
-        private Vector3 lastRotation = Vector3.Zero;
+        private Quaternion lastRotation = Quaternion.Identity;
 
         private Matrix4 model;
 
@@ -62,7 +62,7 @@ namespace CavingSimulator2.Render.Meshes
             lastRotation = transform.Rotation;
             lastScale = transform.Scale;
             model = Matrix4.CreateScale(transform.Scale)
-                * Matrix4.CreateFromQuaternion(new Quaternion(transform.Rotation))
+                * Matrix4.CreateFromQuaternion(transform.Rotation)
                 * Matrix4.CreateTranslation(transform.Position);
 
         }

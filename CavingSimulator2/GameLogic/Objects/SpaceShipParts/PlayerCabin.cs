@@ -35,15 +35,15 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             AddPart(new Vector3i(0, 0,-1), new Gimbal(new Vector3(0f, 0f,-30f), Keys.LeftShift));
 
             // rotate right left
-            AddPart(new Vector3i(+1, -1, 0), new Thruster(new Vector3(0f,0f, MathHelper.DegreesToRadians(+90f)), 60f, Keys.D));
-            AddPart(new Vector3i(-1, +1, 0), new Thruster(new Vector3(0f,0f, MathHelper.DegreesToRadians(-90f)), 60f, Keys.D));
+            AddPart(new Vector3i(+1, -1, 0), new Thruster(new Quaternion(0f,0f, MathHelper.DegreesToRadians(+90f)), 60f, Keys.D));
+            AddPart(new Vector3i(-1, +1, 0), new Thruster(new Quaternion(0f,0f, MathHelper.DegreesToRadians(-90f)), 60f, Keys.D));
 
-            AddPart(new Vector3i(-1, -1, 0), new Thruster(new Vector3(0f, 0f, MathHelper.DegreesToRadians(-90f)), 60f, Keys.A));
-            AddPart(new Vector3i(+1, +1, 0), new Thruster(new Vector3(0f, 0f, MathHelper.DegreesToRadians(+90f)), 60f, Keys.A));
+            AddPart(new Vector3i(-1, -1, 0), new Thruster(new Quaternion(0f, 0f, MathHelper.DegreesToRadians(-90f)), 60f, Keys.A));
+            AddPart(new Vector3i(+1, +1, 0), new Thruster(new Quaternion(0f, 0f, MathHelper.DegreesToRadians(+90f)), 60f, Keys.A));
 
             // foward back
-            AddPart(new Vector3i(0, -1, 0), new Thruster(new Vector3(0f, 0f, 0f), 30f, Keys.W));
-            AddPart(new Vector3i(0, +2, 0), new Thruster(new Vector3(0f, 0f, MathHelper.DegreesToRadians(+180f)), 60f, Keys.S));
+            AddPart(new Vector3i(0, -1, 0), new Thruster(new Quaternion(0f, 0f, 0f), 30f, Keys.W));
+            AddPart(new Vector3i(0, +2, 0), new Thruster(new Quaternion(0f, 0f, MathHelper.DegreesToRadians(+180f)), 60f, Keys.S));
 
             //AddPart(new Vector3i(0, +1, 0), new GyroScope(Vector3.Zero, 150f, Vector3.Zero, Keys.G));
 
@@ -62,7 +62,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             part.parentRigbody = rigBody;
             if(part.RigBody is not null)
             {
-                part.RigBody.Position = new Vector3(new Vector4(this.rigBody.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.rigBody.Rotation)));
+                part.RigBody.Position = new Vector3(new Vector4(this.rigBody.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.rigBody.Rotation));
                 part.RigBody.Rotation = this.rigBody.Rotation;
                 part.RigBody.LinearVelocity = Vector3.Zero;
                 rigBody.Weld(localPosition, part.RigBody, Vector3.One, 1);
@@ -74,7 +74,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             parts.Add(localPosition, part);
             return part.id;
         }
-        public int AddPart(Vector3i localPosition, Vector3 localRotation, Part part)
+        public int AddPart(Vector3i localPosition, Quaternion localRotation, Part part)
         {
             // set object to exat pos
             part.parentTransform = transform;
@@ -83,7 +83,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             part.parentRigbody = rigBody;
             if (part.RigBody is not null)
             {
-                part.RigBody.Position = new Vector3(new Vector4(this.rigBody.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.rigBody.Rotation)));
+                part.RigBody.Position = new Vector3(new Vector4(this.rigBody.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.rigBody.Rotation));
                 part.RigBody.Rotation = this.rigBody.Rotation;
                 part.RigBody.LinearVelocity = Vector3.Zero;
                 rigBody.Weld(localPosition, part.RigBody, Vector3.One, 1);
@@ -161,7 +161,23 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             }
 
         }
+        //public Player player;
+        //public Inventory inventory;
+        //public ChunkGenerator chunkGenerator;
+        //public Selector selector;
 
+        //public Dictionary<Vector3i, Part> parts = new Dictionary<Vector3i, Part>();
+        protected override void AbstractDispose()
+        {
+            if (player is not null) player.Dispose();
+            if (inventory is not null) inventory.Dispose();
+            if (chunkGenerator is not null) chunkGenerator.Dispose();
+            if (selector is not null) selector.Dispose();
+            foreach(Part part in parts.Values)
+            {
+                part.Dispose();
+            }
+        }
 
     }
 }

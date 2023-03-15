@@ -76,7 +76,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         private void UpdateTransform()
         {
             transform.Position = dynamicBody.Position;
-            transform.Rotation = dynamicBody.Rotation;
+            transform.Rotation = new Quaternion(dynamicBody.Rotation);
         }
         private void UpdateBlocks()
         {
@@ -184,7 +184,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 
                 this.bodyHandle = Game.physicsSpace.Bodies.Add(
                         BodyDescription.CreateDynamic(
-                            new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(new Quaternion(transform.Rotation))),
+                            new RigidPose(Adapter.Convert(transform.Position), Adapter.Convert(transform.Rotation)),
                             bodyInertia,
                             new CollidableDescription( ShapesDir.sphereShapes[radius], radius),
                             new BodyActivityDescription(0.01f)
@@ -200,7 +200,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 
                 this.bodyHandle = Game.physicsSpace.Bodies.Add(
                         BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(this.transform.Position), Adapter.Convert(new Quaternion(this.transform.Rotation))),
+                        new RigidPose(Adapter.Convert(this.transform.Position), Adapter.Convert(this.transform.Rotation)),
                         bodyInertia,
                         new CollidableDescription(ShapesDir.boxShapes[size]),
                         new BodyActivityDescription(0.01f)));
@@ -221,7 +221,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 this.compoundHandle = Game.physicsSpace.Shapes.Add(new Compound(children));
                 this.bodyHandle = Game.physicsSpace.Bodies.Add(
                         BodyDescription.CreateDynamic(
-                        new RigidPose(Adapter.Convert(this.transform.Position) + center, Adapter.Convert(new Quaternion(this.transform.Rotation))),
+                        new RigidPose(Adapter.Convert(this.transform.Position) + center, Adapter.Convert(this.transform.Rotation)),
                         bodyInertia,
                         new CollidableDescription(this.compoundHandle),
                         new BodyActivityDescription(0.01f)));
@@ -240,11 +240,11 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 welds.Add(Adapter.Convert(offset),
                     (rigBody.dynamicBody.bodyHandle,
                     Adapter.Convert(offset),
-                    Adapter.Convert(new Quaternion(transform.Rotation)),
+                    Adapter.Convert(transform.Rotation),
                     Game.physicsSpace.Solver.Add(this.bodyHandle, rigBody.dynamicBody.bodyHandle, new Weld()
                         {
                             LocalOffset = Adapter.Convert(offset),
-                            LocalOrientation = Adapter.Convert(new Quaternion(transform.Rotation)),
+                            LocalOrientation = Adapter.Convert(transform.Rotation),
                             SpringSettings = new SpringSettings(10f, 1f)
                         })
                     )

@@ -22,7 +22,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         public RigBody parentRigbody;
         public Transform parentTransform;
         public Vector3i localPosition;
-        public Vector3 localRotation = Vector3.Zero;
+        public Quaternion localRotation = Quaternion.Identity;
         public ShapeType colliderShape = ShapeType.box;
         public Keys key;
 

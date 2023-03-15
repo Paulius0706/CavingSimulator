@@ -35,16 +35,16 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
-            transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
             transform.Rotation = this.parentTransform.Rotation;
 
             if (key == Keys.Unknown || Game.input.IsKeyDown(key))
             {
-                Vector3 forceDirection = new Vector3(new Vector4(localForceDirection) * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.Rotation)));
+                Vector3 forceDirection = new Vector3(new Vector4(localForceDirection) * Matrix4.CreateFromQuaternion(this.transform.Rotation));
                 parentRigbody.AddForce(transform.Position - parentTransform.Position, forceDirection * Game.deltaTime);
             }
 
-            transform.Rotation += this.localRotation;
+            transform.Rotation +=  this.localRotation;
             
         }
     }

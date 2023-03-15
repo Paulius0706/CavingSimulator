@@ -18,28 +18,28 @@ namespace CavingSimulator.GameLogic.Components
 
 
         private Vector3 position = Vector3.Zero;
-        private Vector3 rotation = Vector3.Zero;
+        private Quaternion rotation = Quaternion.Identity;
         private Vector3 scale = Vector3.One;
         public List<Transform> childs = new List<Transform>();
 
-        public Transform(Vector3 position, Vector3 rotation, Vector3 scale, Transform parent)
+        public Transform(Vector3 position, Quaternion rotation, Vector3 scale, Transform parent)
         {
             this.position = position;
             this.rotation = rotation;
             this.scale = scale;
         }
-        public Transform(Vector3 position, Vector3 rotation, Vector3 scale)
+        public Transform(Vector3 position, Quaternion rotation, Vector3 scale)
         {
             this.position = position;
             this.rotation = rotation;
             this.scale = scale;
         }
-        public Transform(Vector3 position, Vector3 rotation, Transform parent)
+        public Transform(Vector3 position, Quaternion rotation, Transform parent)
         {
             this.position = position;
             this.rotation = rotation;
         }
-        public Transform(Vector3 position, Vector3 rotation)
+        public Transform(Vector3 position, Quaternion rotation)
         {
             this.position = position;
             this.rotation = rotation;
@@ -65,7 +65,7 @@ namespace CavingSimulator.GameLogic.Components
                 position = value;
             }
         }
-        public Vector3 Rotation
+        public Quaternion Rotation
         {
             get
             {

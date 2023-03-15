@@ -114,7 +114,7 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("Model", ref model);
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
-            Game.shaderPrograms.Current.SetUniform("LightPos", Vector3.Normalize(new Vector3(1f, 1f, 1f)));
+            Game.shaderPrograms.Current.SetUniform("LightPos", Vector3.Normalize(new Vector3(3f, 4f, 5f)));
             Game.shaderPrograms.UnUseProgram();
 
             // Add MeshSize View Projection to object shader
@@ -122,7 +122,7 @@ namespace CavingSimulator2
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
             Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("MeshSize", 1f / (float)Game.blockTextures.spriteHeight);
-            Game.shaderPrograms.Current.SetUniform("LightPos", Vector3.Normalize(new Vector3(1f, 1f, 1f)));
+            Game.shaderPrograms.Current.SetUniform("LightPos", Vector3.Normalize(new Vector3(3f, 4f, 5f)));
             Game.shaderPrograms.UnUseProgram();
 
             // Add to IU shader

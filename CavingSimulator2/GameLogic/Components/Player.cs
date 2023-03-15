@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace CavingSimulator.GameLogic.Components
 {
-    public class Player
+    public class Player : IDisposable
     {
         public readonly Transform transform;
         public readonly RigBody rigBody;
@@ -73,6 +73,11 @@ namespace CavingSimulator.GameLogic.Components
                 Game.UI.UnUseView();
             }
 
+        }
+
+        public void Dispose()
+        {
+            
         }
     }
 }

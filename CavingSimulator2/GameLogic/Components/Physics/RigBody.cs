@@ -42,7 +42,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             this.shapeHandle = Game.physicsSpace.Shapes.Add(new BigCompound(children,Game.physicsSpace.Shapes,Game.bufferPool));
 
             bodyHandle = Game.physicsSpace.Bodies.Add(BodyDescription.CreateDynamic(
-                new RigidPose(Adapter.Convert(this.transform.Position) + center, Adapter.Convert(new Quaternion(this.transform.Rotation))),
+                new RigidPose(Adapter.Convert(this.transform.Position) + center, Adapter.Convert(this.transform.Rotation)),
                 bodyInertia,
                 new CollidableDescription(this.shapeHandle),
                 new BodyActivityDescription(0.01f))
@@ -77,7 +77,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         private void UpdateTransform()
         {
             transform.Rotation = Rotation;
-            worldCenterOffset = new Vector3(new Vector4(centerOffset) * Matrix4.CreateFromQuaternion(new Quaternion(this.transform.Rotation)));
+            worldCenterOffset = new Vector3(new Vector4(centerOffset) * Matrix4.CreateFromQuaternion(this.transform.Rotation));
             transform.Position = Position - worldCenterOffset;
             
         }
@@ -124,11 +124,11 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         {
             
         }
-        public void StaticWeld(ShapeType shapeType, Vector3 localPosition, Vector3 localRotation, float mass)
+        public void StaticWeld(ShapeType shapeType, Vector3 localPosition, Quaternion localRotation, float mass)
         {
             // adds new shape to selected list
             if (shapesInfo.ContainsKey(localPosition)) return;
-            shapesInfo.Add(localPosition, (shapeType, localPosition, localRotation, mass));
+            shapesInfo.Add(localPosition, (shapeType, localPosition, localRotation.ToEulerAngles(), mass));
             UpdateShape();
             
         }
@@ -204,10 +204,10 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             get { return Adapter.Convert(bodyReference.Pose.Position); }
             set { bodyReference.Pose.Position = Adapter.Convert( value); bodyReference.Awake = true; }
         }
-        public Vector3 Rotation
+        public Quaternion Rotation
         {
-            get { return Adapter.Convert(bodyReference.Pose.Orientation).ToEulerAngles(); }
-            set { bodyReference.Pose.Orientation = Adapter.Convert(new Quaternion (value)); bodyReference.Awake = true; }
+            get { return Adapter.Convert(bodyReference.Pose.Orientation); }
+            set { bodyReference.Pose.Orientation = Adapter.Convert(value); bodyReference.Awake = true; }
         }
         public static Vector3 GoTowards(Vector3 start, Vector3 target, float delta)
         {

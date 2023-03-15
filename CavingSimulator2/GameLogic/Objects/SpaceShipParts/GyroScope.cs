@@ -12,11 +12,11 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
     public class GyroScope : Part
     {
-        public Vector3 targetRotation;
+        public Quaternion targetRotation;
         public float force;
         public bool active;
         //public Keys key;
-        public GyroScope(Transform transform, Vector3 localRotation, float force, Vector3 targetRotation, Keys key = Keys.Unknown) : base()
+        public GyroScope(Transform transform, Quaternion localRotation, float force, Quaternion targetRotation, Keys key = Keys.Unknown) : base()
         {
             ImageName = "gyroImage";
             this.active = true;
@@ -29,7 +29,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             this.renderer = new Renderer();
             this.renderer.AddMesh(new Mesh(this.transform, "gyroscope"));
         }
-        public GyroScope(Vector3 localRotation, float force, Vector3 targetRotation, Keys key = Keys.Unknown) : base()
+        public GyroScope(Quaternion localRotation, float force, Quaternion targetRotation, Keys key = Keys.Unknown) : base()
         {
             ImageName = "gyroImage";
             this.active = true;
@@ -45,18 +45,17 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
-            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
             transform.Position = this.parentTransform.Position + localPos;
-            var qRotation = (Quaternion.FromEulerAngles(this.parentTransform.Rotation) * Quaternion.FromEulerAngles(this.localRotation));
-            transform.Rotation = qRotation.ToEulerAngles();
+            var qRotation = (this.parentTransform.Rotation * this.localRotation);
+            transform.Rotation = qRotation;
 
             if (key != Keys.Unknown && Game.input.IsKeyDown(key)) { active = !active; }
             if (active)
             {
-                Vector3 rotationTargetDelta = (targetRotation - parentRigbody.Rotation);
-                rotationTargetDelta.Z = 0;
-                if (rotationTargetDelta == Vector3.Zero) return;
-                Vector3 rotationForce = rotationTargetDelta.Normalized() * force * Game.deltaTime;
+                Quaternion rotationTargetDelta = (targetRotation * parentRigbody.Rotation.Inverted());
+                if (rotationTargetDelta == Quaternion.Identity) return;
+                Vector3 rotationForce = rotationTargetDelta.ToEulerAngles() * force * Game.deltaTime;
                 parentRigbody.AddAngularVelocity(rotationForce);
             }
         }

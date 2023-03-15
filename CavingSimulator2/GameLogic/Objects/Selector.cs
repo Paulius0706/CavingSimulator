@@ -24,7 +24,7 @@ namespace CavingSimulator2.GameLogic.Objects
         public Transform parentTransform;
         public Vector3i localPosition = Vector3i.Zero;
         public Vector3 frozenPos = Vector3.Zero;
-        public Vector3 frozenRotation = Vector3.Zero;
+        public Quaternion frozenRotation = Quaternion.Identity;
 
         public Vector3i Xaxis;
         public Vector3i Yaxis;
@@ -51,7 +51,7 @@ namespace CavingSimulator2.GameLogic.Objects
         {
             transform.Position = new Vector3(
                 new Vector4(this.parentTransform.Position) + 
-                new Vector4(new Vector3(localPosition.X, localPosition.Y, localPosition.Z)) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+                new Vector4(new Vector3(localPosition.X, localPosition.Y, localPosition.Z)) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
             transform.Rotation = this.parentTransform.Rotation;
 
             Vector3 FaxisY = Vector3.Normalize(Camera.lookToPoint);
@@ -60,20 +60,16 @@ namespace CavingSimulator2.GameLogic.Objects
 
             Camera.position = this.transform.Position - Camera.lookToPoint * 5f;
 
-            FaxisY = new Vector3(new Vector4(FaxisY) * Matrix4.CreateFromQuaternion(new Quaternion(-this.parentTransform.Rotation)));
-            FaxisZ = new Vector3(new Vector4(FaxisZ) * Matrix4.CreateFromQuaternion(new Quaternion(-this.parentTransform.Rotation)));
-            FaxisX = new Vector3(new Vector4(FaxisX) * Matrix4.CreateFromQuaternion(new Quaternion(-this.parentTransform.Rotation)));
+            FaxisY = new Vector3(new Vector4(FaxisY) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation.Inverted()));
+            FaxisZ = new Vector3(new Vector4(FaxisZ) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation.Inverted()));
+            FaxisX = new Vector3(new Vector4(FaxisX) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation.Inverted()));
 
-            Yaxis = new Vector3i((int)Math.Round(FaxisY.X), (int)Math.Round(FaxisY.Y), (int)Math.Round(FaxisY.Z));
-            Zaxis = new Vector3i((int)Math.Round(FaxisZ.X), (int)Math.Round(FaxisZ.Y), (int)Math.Round(FaxisZ.Z));
-            Xaxis = new Vector3i((int)Math.Round(FaxisX.X), (int)Math.Round(FaxisX.Y), (int)Math.Round(FaxisX.Z));
-
-            //Yaxis = GetAxis(FaxisY);
-            //Zaxis = GetAxis(FaxisZ);
-            //Xaxis = GetAxis(FaxisX);
+            Yaxis = GetAxis(FaxisY);
+            Zaxis = GetAxis(FaxisZ);
+            Xaxis = GetAxis(FaxisX);
 
             // do axis
-            Vector3 look = new Vector3(new Vector4(Camera.lookToPoint) * Matrix4.CreateFromQuaternion(new Quaternion(-this.parentTransform.Rotation)));
+            Vector3 look = new Vector3(new Vector4(Camera.lookToPoint) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation.Inverted()));
 
 
             lookAxis = Vector3i.UnitY;
@@ -128,13 +124,11 @@ namespace CavingSimulator2.GameLogic.Objects
                 {
                     if (Inputs.RorateRight)
                     {
-                        var stuff = Matrix4.CreateFromQuaternion(Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(90f)));
-                        playerCabin.parts[localPosition].localRotation = new Vector3(new Vector4(playerCabin.parts[localPosition].localRotation) * stuff);
+                        playerCabin.parts[localPosition].localRotation = Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(90f)) * playerCabin.parts[localPosition].localRotation;
                     }
                     if (Inputs.RorateLeft)
                     {
-
-                        playerCabin.parts[localPosition].localRotation = playerCabin.parts[localPosition].localRotation + Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(-90f)).ToEulerAngles();
+                        playerCabin.parts[localPosition].localRotation = Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(-90f)) * playerCabin.parts[localPosition].localRotation;
                     }
                 }
             }

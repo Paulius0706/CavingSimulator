@@ -38,7 +38,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
-            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
             transform.Position = this.parentTransform.Position + localPos;
             transform.Rotation = this.parentTransform.Rotation;
             

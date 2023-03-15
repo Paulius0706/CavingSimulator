@@ -34,8 +34,8 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
 
         public readonly Vector2 LowerUpperPosition;
 
-        public const float Letter_Width = 20f;
-        public const float Letter_Height = 25f;
+        public const float Letter_Width = 15f;
+        public const float Letter_Height = 20f;
         public const float paddling = 10f;
         public const float gap = 20f;
         public bool empty = false;

@@ -17,7 +17,7 @@ using System.Transactions;
 
 namespace CavingSimulator2.GameLogic.Components
 {
-    public class ChunkGenerator
+    public class ChunkGenerator : IDisposable
     {
         public static SemaphoreSlim GlLocker = new SemaphoreSlim(1,1);
 
@@ -122,6 +122,13 @@ namespace CavingSimulator2.GameLogic.Components
             return chunks[chunk].FullBlockExist(position);
         }
 
+        public void Dispose()
+        {
+            foreach(Chunk chunk in chunks.Values)
+            {
+                chunk.Dispose();
+            }
+        }
 
         public class Chunk : IDisposable
         {
@@ -145,10 +152,6 @@ namespace CavingSimulator2.GameLogic.Components
                 chunkPositionOffset1 = new Vector3i(chunkPositionOffset.X + size - 1, chunkPositionOffset.Y + size - 1, 0);
                 //Task task = GenerateBlocks();
 
-            }
-            ~Chunk()
-            {
-                Dispose();
             }
             
             public void Update()

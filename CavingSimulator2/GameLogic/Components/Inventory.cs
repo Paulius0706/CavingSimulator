@@ -13,8 +13,9 @@ namespace CavingSimulator2.GameLogic.Components
 {
 
 
-    public class Inventory
+    public class Inventory : IDisposable
     {
+        public bool Disposed { get; private set; } = false;
         public struct ItemSlot
         {
             public Item item;
@@ -78,8 +79,8 @@ namespace CavingSimulator2.GameLogic.Components
         {
             new ItemSlot(Item.frame,new  Frame()),
             new ItemSlot(Item.gimbal,new  Gimbal(new Vector3(0f, 0f,+120f), Keys.Space)),
-            new ItemSlot(Item.gyro,new  GyroScope(Vector3.Zero,150f,Vector3.Zero,Keys.G)),
-            new ItemSlot(Item.thruster,new  Thruster(Vector3.Zero,60f,Keys.Unknown)),
+            new ItemSlot(Item.gyro,new  GyroScope(Quaternion.Identity,150f,Quaternion.Identity,Keys.G)),
+            new ItemSlot(Item.thruster,new  Thruster(Quaternion.Identity,60f,Keys.Unknown)),
             new ItemSlot(Item.none,null),
             new ItemSlot(Item.none,null),
             new ItemSlot(Item.none,null),
@@ -123,7 +124,7 @@ namespace CavingSimulator2.GameLogic.Components
             if (Game.mouse.IsButtonPressed(MouseButton.Left) && !playerCabin.parts.ContainsKey(playerCabin.selector.localPosition))
             {
                 Part part = itemSlots[index].part.Create();
-                Vector3 rotation = new Vector3(playerCabin.selector.lookRotation.X, playerCabin.selector.lookRotation.Y, playerCabin.selector.lookRotation.Z);
+                Quaternion rotation = new Quaternion(new Vector3(playerCabin.selector.lookRotation.X, playerCabin.selector.lookRotation.Y, playerCabin.selector.lookRotation.Z));
                 part.localRotation = rotation;
                 playerCabin.AddPart(playerCabin.selector.localPosition, part);
             }
@@ -173,6 +174,14 @@ namespace CavingSimulator2.GameLogic.Components
         public void Render()
         {
 
+        }
+
+        public void Dispose()
+        {
+            foreach(var items in itemSlots)
+            {
+                items.part.Dispose();
+            }
         }
     }
 }

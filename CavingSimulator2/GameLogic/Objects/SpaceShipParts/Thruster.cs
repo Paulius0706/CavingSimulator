@@ -14,7 +14,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
     {
         public float force;
         
-        public Thruster(Transform transform, Vector3 localRotation, float force, Keys key = Keys.Unknown) : base()
+        public Thruster(Transform transform, Quaternion localRotation, float force, Keys key = Keys.Unknown) : base()
         {
             ImageName = "thrusterImage";
             this.transform = transform;
@@ -25,7 +25,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             this.renderer = new Renderer();
             this.renderer.AddMesh(new Mesh(this.transform, "truster"));
         }
-        public Thruster(Vector3 localRotation, float force, Keys key = Keys.Unknown) : base()
+        public Thruster(Quaternion localRotation, float force, Keys key = Keys.Unknown) : base()
         {
             ImageName = "thrusterImage";
             this.transform = new Transform(Vector3.Zero);
@@ -39,10 +39,10 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
-            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(new Quaternion(this.parentTransform.Rotation)));
+            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(parentTransform.Rotation));
             transform.Position = this.parentTransform.Position + localPos;
-            var qRotation = (Quaternion.FromEulerAngles(this.parentTransform.Rotation) * Quaternion.FromEulerAngles(this.localRotation));
-            transform.Rotation = qRotation.ToEulerAngles();
+            var qRotation = (this.parentTransform.Rotation * this.localRotation);
+            transform.Rotation = qRotation;
 
             if (key == Keys.Unknown || Game.input.IsKeyDown(key))
             {
