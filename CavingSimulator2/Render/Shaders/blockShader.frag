@@ -1,14 +1,15 @@
 ﻿#version 330 core
 
-in vec4 vColor;
 in vec2 vTexture;
-out vec4 pixelColor;
+in float vBrightness;
+
+out vec4 finalColor;
 
 uniform sampler2D Texture;
 
 void main(){
 
-    //pixelColor = texture(Texture, vTexture);
-    pixelColor = texture(Texture, vTexture) * vColor;
-    //pixelColor = sqrt(vColor);
+    vec4 surfaceColor = texture(Texture, vTexture);
+    finalColor = vec4(vBrightness * surfaceColor.rgb, surfaceColor.a);
+
 }

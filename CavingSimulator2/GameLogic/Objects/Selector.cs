@@ -128,8 +128,8 @@ namespace CavingSimulator2.GameLogic.Objects
                 {
                     if (Inputs.RorateRight)
                     {
-
-                        playerCabin.parts[localPosition].localRotation = playerCabin.parts[localPosition].localRotation + Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(90f)).ToEulerAngles();
+                        var stuff = Matrix4.CreateFromQuaternion(Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(90f)));
+                        playerCabin.parts[localPosition].localRotation = new Vector3(new Vector4(playerCabin.parts[localPosition].localRotation) * stuff);
                     }
                     if (Inputs.RorateLeft)
                     {

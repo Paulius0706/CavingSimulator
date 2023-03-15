@@ -67,6 +67,12 @@
     <None Update="Render\Models\Truster.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Render\Shaders\blockShader - Copy.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Render\Shaders\blockShader - Copy.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Render\Shaders\blockShader.vert">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

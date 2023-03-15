@@ -211,7 +211,6 @@ namespace CavingSimulator2.GameLogic.Components
                 if (position.X > chunkPositionOffset1.X) { /*Console.WriteLine("redirect" + (chunkPosition + Vector3i.UnitX));*/ return ChunkGenerator.FullBlockExist(chunkPosition + Vector3i.UnitX, position); }
                 if (position.Y < chunkPositionOffset.Y) { /*Console.WriteLine("redirect" + (chunkPosition - Vector3i.UnitY));*/ return ChunkGenerator.FullBlockExist(chunkPosition - Vector3i.UnitY, position); }
                 if (position.Y > chunkPositionOffset1.Y) { /*Console.WriteLine("redirect" + (chunkPosition + Vector3i.UnitY));*/ return ChunkGenerator.FullBlockExist(chunkPosition + Vector3i.UnitY, position); }
-                //Console.WriteLine("return correct stuff");
                 return blocks.ContainsKey(position);
             }
 
@@ -237,53 +236,37 @@ namespace CavingSimulator2.GameLogic.Components
             {
                 foreach (int key in meshes.Keys)
                 {
-                    VertexPCT[] positions = blocks.Values.
-                        Where(block => block.mesh[key] == '0').
-                        Select(block => 
-                            new VertexPCT(
-                                (Vector3)block.position ,
-                                Game.blockMeshes.SetColor(block.mesh,key),
-                                //new Color4(1f, 1f, 1f, 1f),
-                                block.id )).ToArray();
+                    VertexPT[] positions = blocks.Values.Where(block => block.mesh[key] == '0').Select(o => new VertexPT(o.position, o.id)).ToArray();
                     if(positions.Length > 0)
                     {
                         meshes[key].active = true;
-                        meshes[key].instanceBuffer = new VertexBuffer(VertexPCT.VertexInfo, positions.Length, BufferUsageHint.StaticDraw);
+                        meshes[key].instanceBuffer = new VertexBuffer(VertexPT.VertexInfo, positions.Length, BufferUsageHint.StaticDraw);
                         meshes[key].instanceBuffer.SetData(ref positions, positions.Length);
 
                         GL.BindVertexArray(meshes[key].vertexArray.VertexArrayHandle);
                         GL.BindBuffer(BufferTarget.ElementArrayBuffer, Game.blockMeshes.meshes[key].indexBuffer.IndexBufferHandle);
                         GL.BindBuffer(BufferTarget.ArrayBuffer, meshes[key].instanceBuffer.VertexBufferHandle);
 
-                        GL.VertexAttribPointer(
-                            VertexPCTOTI.VertexInfo.VertexAttributes[3].Index,
-                            VertexPCTOTI.VertexInfo.VertexAttributes[3].ComponentCount,
-                            VertexAttribPointerType.Float, false,
-                            VertexPCT.VertexInfo.SizeInBytes,
-                            VertexPCT.VertexInfo.VertexAttributes[0].Offset);
-                        GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[3].Index);
 
                         GL.VertexAttribPointer(
-                            VertexPCTOTI.VertexInfo.VertexAttributes[1].Index,
-                            VertexPCTOTI.VertexInfo.VertexAttributes[1].ComponentCount,
+                            VertexPOTTiN.VertexInfo.VertexAttributes[1].Index,
+                            VertexPOTTiN.VertexInfo.VertexAttributes[1].ComponentCount,
                             VertexAttribPointerType.Float, false,
-                            VertexPCT.VertexInfo.SizeInBytes,
-                            VertexPCT.VertexInfo.VertexAttributes[1].Offset);
-                        GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[1].Index);
+                            VertexPT.VertexInfo.SizeInBytes,
+                            VertexPT.VertexInfo.VertexAttributes[0].Offset);
+                        GL.EnableVertexAttribArray(VertexPOTTiN.VertexInfo.VertexAttributes[1].Index);
 
                         GL.VertexAttribPointer(
-                            VertexPCTOTI.VertexInfo.VertexAttributes[4].Index,
-                            VertexPCTOTI.VertexInfo.VertexAttributes[4].ComponentCount,
+                            VertexPOTTiN.VertexInfo.VertexAttributes[3].Index,
+                            VertexPOTTiN.VertexInfo.VertexAttributes[3].ComponentCount,
                             VertexAttribPointerType.Float, false,
-                            VertexPCT.VertexInfo.SizeInBytes,
-                            VertexPCT.VertexInfo.VertexAttributes[2].Offset);
-                        GL.EnableVertexAttribArray(VertexPCTOTI.VertexInfo.VertexAttributes[4].Index);
+                            VertexPT.VertexInfo.SizeInBytes,
+                            VertexPT.VertexInfo.VertexAttributes[1].Offset);
+                        GL.EnableVertexAttribArray(VertexPOTTiN.VertexInfo.VertexAttributes[3].Index);
 
 
-                        GL.VertexAttribDivisor(3, 1);
                         GL.VertexAttribDivisor(1, 1);
-                        GL.VertexAttribDivisor(4, 1);
-
+                        GL.VertexAttribDivisor(3, 1);
 
                         GL.BindVertexArray(0);
 

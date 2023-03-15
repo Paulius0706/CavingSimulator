@@ -51,6 +51,49 @@ namespace CavingSimulator2.Render
             this.Texture = Texture;
         }
     }
+    // all block face instance
+    public struct VertexPOTTiN
+    {
+        public readonly Vector3 Position;
+        public readonly Vector3 Offset;
+        public readonly Vector2 Texture;
+        public readonly float TextureId;
+        public readonly Vector3 Normal;
+
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPOTTiN), new VertexAttribute[] {
+            new VertexAttribute("Position" ,0,3,0),
+            new VertexAttribute("Offset"   ,1,3,3 * sizeof(float)),
+            new VertexAttribute("Texture"  ,2,2,6 * sizeof(float)),
+            new VertexAttribute("TextureId",3,1,8 * sizeof(float)),
+            new VertexAttribute("Normal"   ,4,3,9 * sizeof(float)),
+        });
+        public VertexPOTTiN(Vector3 Position, Vector3 Offset, Vector2 Texture, float TextureId, Vector3 Normal)
+        {
+            this.Position = Position;
+            this.Offset = Offset;
+            this.Texture = Texture;
+            this.TextureId = TextureId;
+            this.Normal = Normal;
+        }
+    }
+
+    // one block instance
+    public struct VertexPT
+    {
+        public readonly Vector3 Position;
+        public readonly float Texture;
+
+        public static readonly VertexInfo VertexInfo = new VertexInfo(typeof(VertexPT), new VertexAttribute[] {
+            new VertexAttribute("Position",0,3,0),
+            new VertexAttribute("TextureId",1,1,3 * sizeof(float)),
+        });
+
+        public VertexPT(Vector3 Position, float Texture)
+        {
+            this.Position = Position;
+            this.Texture = Texture;
+        }
+    }
     // one vertex object
     public struct VertexPCTOTI
     {

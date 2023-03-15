@@ -119,9 +119,10 @@ namespace CavingSimulator2
 
             // Add MeshSize View Projection to object shader
             Game.shaderPrograms.UseProgram("block");
-            Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("Projection", ref projection);
+            Game.shaderPrograms.Current.SetUniform("View", ref view);
             Game.shaderPrograms.Current.SetUniform("MeshSize", 1f / (float)Game.blockTextures.spriteHeight);
+            Game.shaderPrograms.Current.SetUniform("LightPos", Vector3.Normalize(new Vector3(1f, 1f, 1f)));
             Game.shaderPrograms.UnUseProgram();
 
             // Add to IU shader
