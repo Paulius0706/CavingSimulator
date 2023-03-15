@@ -11,6 +11,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using CavingSimulator2.Render.Meshes;
 using CavingSimulator2.Helpers;
 using CavingSimulator2.Debugger;
+using CavingSimulator2.GameLogic.UI.Views.Components;
 
 namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
@@ -135,7 +136,11 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         {
             if (Inputs.BuildMode)
             {
-                if (selector != null) { selector.Dispose(); selector = null; }
+                if (selector != null) 
+                { 
+                    selector.Dispose(); selector = null;
+                    Game.UI.UseView("game");
+                }
                 else
                 {
                     selector = new Selector(this.transform, this);
@@ -143,6 +148,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
                     selector.frozenRotation = this.transform.Rotation;
                     rigBody.AngularVelocity = Vector3.Zero;
                     rigBody.LinearVelocity = Vector3.Zero;
+                    Game.UI.UseView("builder");
                 }
             }
             if (selector != null)
@@ -150,6 +156,20 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
                 if (Inputs.InputBindMode)
                 {
                     selector.KeyBind = !selector.KeyBind;
+
+                    HintInfo hintInfo = Game.UI.GetView<HintInfo>("HintInfo");
+                    if(hintInfo is not null && Game.UI.Use == "builder")
+                    {
+                        if (selector.KeyBind)
+                        {
+                            hintInfo.Update(1, "UnBind Keys - L   ");
+                        }
+                        if (!selector.KeyBind)
+                        {
+                            hintInfo.Update(1, "  Bind Keys - L   ");
+                        }
+                    }
+                    
                     Debug.WriteLine(nameof(selector.KeyBind) + " => " + selector.KeyBind);
                 }
                 selector.Update();
@@ -161,12 +181,6 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             }
 
         }
-        //public Player player;
-        //public Inventory inventory;
-        //public ChunkGenerator chunkGenerator;
-        //public Selector selector;
-
-        //public Dictionary<Vector3i, Part> parts = new Dictionary<Vector3i, Part>();
         protected override void AbstractDispose()
         {
             if (player is not null) player.Dispose();

@@ -41,24 +41,53 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             this.tag = tag;
             this.UpperPosition = UpperPosition;
 
+
+            //text = new TextLines("ItemInfo",
+            //    new Vector2(UpperPosition.X - paddling - paddling - info.Select(o => o.Length).Max() * Letter_Width, UpperPosition.Y - paddling),
+            //    new Vector2(Letter_Width, Letter_Height));
+
+            //GetCordsFromLowerPositionWidthHeight(
+            //    new Vector2(UpperPosition.X, UpperPosition.Y - text.PixelHeight - paddling - paddling),
+            //    new Vector2(paddling + text.PixelWidth + paddling, paddling + text.PixelHeight + paddling),
+            //    out Vector2 lLabelPosition,
+            //    out Vector2 uLabelPosition);
+            //textBackGround = new UIMesh(Game.textures.GetIndex("white"), uLabelPosition, lLabelPosition, Vector2.Zero, Vector2.One, textBackGroundColor, 1f);
+        }
+        public void Update(List<string> lines)
+        {
+            InternalDispose();
+            info = lines;
+            if (info.Count == 0) return;
             text = new TextLines("ItemInfo",
-                new Vector2(UpperPosition.X - paddling - paddling - info.Select(o => o.Length).Max() * Letter_Width, UpperPosition.Y - paddling),
+                new Vector2(UpperPosition.X - paddling - info.Select(o => o.Length).Max() * Letter_Width, UpperPosition.Y - paddling),
                 new Vector2(Letter_Width, Letter_Height));
 
+            foreach(string line in info)
+            {
+                text.AddLine(line,textTextColor);
+            }
+
             GetCordsFromLowerPositionWidthHeight(
-                new Vector2(UpperPosition.X, UpperPosition.Y - text.PixelHeight - paddling - paddling),
+                new Vector2(UpperPosition.X - (paddling + text.PixelWidth + paddling), UpperPosition.Y - (paddling + text.PixelHeight + paddling)),
                 new Vector2(paddling + text.PixelWidth + paddling, paddling + text.PixelHeight + paddling),
                 out Vector2 lLabelPosition,
                 out Vector2 uLabelPosition);
             textBackGround = new UIMesh(Game.textures.GetIndex("white"), uLabelPosition, lLabelPosition, Vector2.Zero, Vector2.One, textBackGroundColor, 1f);
         }
-        public void Update(List<string> lines)
+        public void Update(int index, string line)
         {
+            if (info.Count == 0) return;
+            if (info.Count <= index) return;
             InternalDispose();
-
+            info[index] = line;
             text = new TextLines("ItemInfo",
                 new Vector2(UpperPosition.X - paddling - info.Select(o => o.Length).Max() * Letter_Width, UpperPosition.Y - paddling),
                 new Vector2(Letter_Width, Letter_Height));
+
+            foreach (string str in info)
+            {
+                text.AddLine(str, textTextColor);
+            }
 
             GetCordsFromLowerPositionWidthHeight(
                 new Vector2(UpperPosition.X - (paddling + text.PixelWidth + paddling), UpperPosition.Y - (paddling + text.PixelHeight + paddling)),

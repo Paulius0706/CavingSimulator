@@ -96,7 +96,8 @@ namespace CavingSimulator2.GameLogic.Components
         }
         public void Update()
         {
-            if (updated && Game.UI.Current is not null )
+
+            if (updated && Game.UI.Use == "builder")
             {
                 ItemsLine itemsLine = Game.UI.GetView<ItemsLine>("placeHolder");
                 if (itemsLine is not null)
@@ -120,17 +121,20 @@ namespace CavingSimulator2.GameLogic.Components
         }
         private void PlaceItem()
         {
-            if (!playerCabin.player.isBuilderMode) return;
+            if (playerCabin.selector is null) return;
+            if (playerCabin.selector.KeyBind) return;
             if (Game.mouse.IsButtonPressed(MouseButton.Left) && !playerCabin.parts.ContainsKey(playerCabin.selector.localPosition))
             {
                 Part part = itemSlots[index].part.Create();
                 Quaternion rotation = new Quaternion(new Vector3(playerCabin.selector.lookRotation.X, playerCabin.selector.lookRotation.Y, playerCabin.selector.lookRotation.Z));
                 part.localRotation = rotation;
                 playerCabin.AddPart(playerCabin.selector.localPosition, part);
+                playerCabin.selector.UpdateUI();
             }
             if(Game.mouse.IsButtonPressed(MouseButton.Right) && playerCabin.parts.ContainsKey(playerCabin.selector.localPosition))
             {
                 playerCabin.RemovePart(playerCabin.selector.localPosition);
+                playerCabin.selector.UpdateUI();
             }
 
         }
@@ -153,7 +157,7 @@ namespace CavingSimulator2.GameLogic.Components
         }
         private void Scroll()
         {
-            if (!playerCabin.player.isBuilderMode) return;
+            if (playerCabin.selector is null) return;
             Vector2 scroll = Game.mouse.ScrollDelta;
             if(scroll.Y == -1)
             {
@@ -180,7 +184,7 @@ namespace CavingSimulator2.GameLogic.Components
         {
             foreach(var items in itemSlots)
             {
-                items.part.Dispose();
+                if(items.part is not null) items.part.Dispose();
             }
         }
     }

@@ -169,6 +169,8 @@ namespace CavingSimulator2
 
             // Add UI Elements
             Game.UI["builder"] = new BuilderView();
+            Game.UI["game"] = new GameView();
+            Game.UI.UseView("game");
             //Game.uiMeshes.Add("inventory", "selector", new Vector2(-0.5f, -0.5f), new Vector2(0.5f, 0.5f));
 
             // Add interactive console

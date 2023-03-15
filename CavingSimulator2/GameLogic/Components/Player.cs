@@ -23,9 +23,6 @@ namespace CavingSimulator.GameLogic.Components
         public readonly PlayerCabin playerCabin;
         public float viewSensitivity = 0.01f;
 
-
-        public bool isBuilderMode = false;
-
         public bool lockMouse = false;
 
         public Player(Transform transform, RigBody rigBody, PlayerCabin playerCabin)
@@ -36,7 +33,6 @@ namespace CavingSimulator.GameLogic.Components
         }
         public void Update() 
         {
-            BuilderModeInstancing();
 
             Movement();
             Camera.position = transform.Position - Camera.lookToPoint * 5f;
@@ -56,23 +52,6 @@ namespace CavingSimulator.GameLogic.Components
                 Inputs.MovementPlane.X * Vector3.Normalize(Vector3.Cross(Camera.lookToPoint, Camera.up)) +
                 Inputs.MovementPlane.Y * Vector3.Normalize(Camera.lookToPoint - Inputs.MovementPlane.Y * Camera.lookToPoint.Z * Vector3.UnitZ);
             velocityTarget.Z = 0;
-        }
-        public void BuilderModeInstancing()
-        {
-            KeyboardState input = Game.input;
-            if (input.IsKeyPressed(Keys.B)) 
-            {
-                isBuilderMode = !isBuilderMode;
-            }
-            if (isBuilderMode)
-            {
-                Game.UI.UseView("builder");
-            }
-            if(!isBuilderMode && Game.UI.Use == "builder")
-            {
-                Game.UI.UnUseView();
-            }
-
         }
 
         public void Dispose()

@@ -22,7 +22,16 @@ namespace CavingSimulator2.GameLogic.UI.Views
             Vector2 lowerCorner = center - lineSize / 2f;
             views.Add("Line", new ItemsLine("placeHolder", lowerCorner, lineSize,count,size));
             views.Add("ItemInfo", new ItemInfo("ItemInfo", new Vector2(20f, Game.ViewPortSize.Y - 20f)));
-            views.Add("HintLine", new HintInfo("HintInfo", new Vector2(Game.ViewPortSize.X - 20f, Game.ViewPortSize.Y - 20f)));
+            HintInfo hintInfo = new HintInfo("HintInfo", new Vector2(Game.ViewPortSize.X - 20f, Game.ViewPortSize.Y - 20f));
+            hintInfo.Update(new List<string>()
+            {
+                "Exist Build - B   ",
+                "  Bind Keys - L   ",
+                "     Rotate - Q,E ",
+                "       Move - WASD",
+            });
+            
+            views.Add("HintLine", hintInfo);
             //views.Add("Info", new TextLines("ItemInfo",new Vector2(50f,Game.ViewPortSize.Y -50f),new Vector2(30f,30f)));
         }
     }

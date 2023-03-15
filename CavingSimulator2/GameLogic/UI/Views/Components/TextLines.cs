@@ -29,7 +29,7 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             //AddLine("?.,+=-' '_/@#$%^&*");
 
         }
-        public int MaxLineLetterWidth { get { return lines.Select(o => o.letters.Count).Max(); } }
+        public int MaxLineLetterWidth { get { return lines.Count > 0 ? lines.Select(o => o.letters.Count).Max() : 0; } }
         public float PixelWidth { get { return MaxLineLetterWidth * LetterWidth; } }
         public int LinesCount { get { return lines.Count; } }
         public float PixelHeight { get { return LinesCount * LetterHeight + (LineGap * Math.Max(0,LinesCount -1)); } }

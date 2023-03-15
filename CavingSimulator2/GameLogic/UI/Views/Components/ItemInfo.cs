@@ -74,10 +74,10 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             values = new TextLines("ItemInfo", 
                 new Vector2(LowerUpperPosition.X + paddling + labels.PixelWidth + paddling + gap + paddling, LowerUpperPosition.Y - paddling), 
                 new Vector2(Letter_Width, Letter_Height));
-            values.AddLine("value", valuesTextColor);
-            values.AddLine("valueasdc", valuesTextColor);
-            values.AddLine("valueedrfv", valuesTextColor);
-            values.AddLine("valueqerf", valuesTextColor);
+            values.AddLine("", valuesTextColor);
+            values.AddLine("", valuesTextColor);
+            values.AddLine("", valuesTextColor);
+            values.AddLine("", valuesTextColor);
 
             GetCordsFromLowerPositionWidthHeight(
                 new Vector2(LowerUpperPosition.X + paddling + labels.PixelWidth + paddling + gap, LowerUpperPosition.Y - values.PixelHeight - paddling - paddling),
