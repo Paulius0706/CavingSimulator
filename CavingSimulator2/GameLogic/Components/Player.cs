@@ -1,5 +1,6 @@
 ﻿using BepuPhysics;
 using CavingSimulator2;
+using CavingSimulator2.Debugger;
 using CavingSimulator2.GameLogic.Components;
 using CavingSimulator2.GameLogic.Components.Physics;
 using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
@@ -34,11 +35,20 @@ namespace CavingSimulator.GameLogic.Components
         public void Update() 
         {
 
-            Movement();
-            Camera.position = transform.Position - Camera.lookToPoint * 5f;
+            CameraMovement();
+            MeniuControl();
+            //Debug.WriteLine(Camera.lenght + "");
         }
-        public void Movement()
+        public void CameraMovement()
         {
+
+            Camera.relative_position = transform.Position;
+            
+            if (Game.UI.Use == "meniu") return;
+
+            if (Inputs.ShiftScroolUp) { Camera.lenght += Game.deltaTime * 5f; }
+            if (Inputs.ShiftScroolDown) { Camera.lenght -= Game.deltaTime * 5f; }
+            
             KeyboardState input = Game.input;
             if (input.IsKeyPressed(Keys.Escape)) { lockMouse = !lockMouse; Game.cursorState = Game.cursorState == CursorState.Grabbed ? CursorState.Normal : CursorState.Grabbed; }
             
@@ -47,11 +57,14 @@ namespace CavingSimulator.GameLogic.Components
                 Vector2 delta = Game.mouse.Delta;
                 Camera.SetDeltaYawPitch(delta.X * viewSensitivity, delta.Y * viewSensitivity);
             }
-            // moving
-            Vector3 velocityTarget =
-                Inputs.MovementPlane.X * Vector3.Normalize(Vector3.Cross(Camera.lookToPoint, Camera.up)) +
-                Inputs.MovementPlane.Y * Vector3.Normalize(Camera.lookToPoint - Inputs.MovementPlane.Y * Camera.lookToPoint.Z * Vector3.UnitZ);
-            velocityTarget.Z = 0;
+
+        }
+        public void MeniuControl()
+        {
+            if (Game.UI.Use == "meniu") return;
+            if (!Inputs.Pause) return;
+            Game.UI.UseView("meniu");
+            Game.cursorState = CursorState.Normal;
         }
 
         public void Dispose()

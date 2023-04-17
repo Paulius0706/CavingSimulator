@@ -4,7 +4,9 @@
     {
         static void Main(string[] args)
         {
-            using (Game game = new Game(1280, 720, "View"))
+            //1920 × 1080
+            //1280 × 720 
+            using (Game game = new Game(1920 ,1080, "View"))
             {
 
                 //Run takes a double, which is how many frames per second it should strive to reach.

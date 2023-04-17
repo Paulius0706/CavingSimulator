@@ -36,6 +36,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
         {
             transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
             transform.Rotation = this.parentTransform.Rotation;
+
         }
 
         public override Part Create()

@@ -38,6 +38,8 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             transform.Position = new Vector3(new Vector4(this.parentTransform.Position) + new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
             transform.Rotation = this.parentTransform.Rotation;
 
+            if (Game.UI.Use == "meniu") return;
+
             if (key == Keys.Unknown || Game.input.IsKeyDown(key))
             {
                 Vector3 forceDirection = new Vector3(new Vector4(localForceDirection) * Matrix4.CreateFromQuaternion(this.transform.Rotation));

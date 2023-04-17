@@ -17,6 +17,18 @@ namespace CavingSimulator2.GameLogic.UI.Views
         {
             Dispose();
         }
+        public void Update()
+        {
+            UpdateInternal();
+            foreach(var view in views.Values)
+            {
+                view.Update();
+            }
+        }
+        public virtual void UpdateInternal()
+        {
+
+        }
         public virtual void Render()
         {
 
@@ -59,6 +71,13 @@ namespace CavingSimulator2.GameLogic.UI.Views
             Vector2 lp = new Vector2(lowerPosition.X / Game.ViewPortSize.X * 2f - 1f, lowerPosition.Y / Game.ViewPortSize.Y * 2f - 1f);
             trueUpperPosition = lp + wh;
             trueLowerPosition = lp;
+        }
+        public static void GetCordsFromCenterPositionWidthHeight(Vector2 centerPostion, Vector2 widthHeight, out Vector2 trueLowerPosition, out Vector2 trueUpperPosition)
+        {
+            Vector2 wh = new Vector2(widthHeight.X / Game.ViewPortSize.X * 2f, widthHeight.Y / Game.ViewPortSize.Y * 2f);
+            Vector2 cp = new Vector2(centerPostion.X / Game.ViewPortSize.X * 2f - 1f, centerPostion.Y / Game.ViewPortSize.Y * 2f - 1f);
+            trueUpperPosition = cp + wh / 2f;
+            trueLowerPosition = cp - wh / 2f;
         }
 
         public void Dispose()

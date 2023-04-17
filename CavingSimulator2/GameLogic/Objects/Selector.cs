@@ -34,8 +34,14 @@ namespace CavingSimulator2.GameLogic.Objects
 
         public Renderer renderer;
         public Transform transform;
-        public bool KeyBind = false;
+        public KeyBind keyBind = KeyBind.no;
         public PlayerCabin playerCabin;
+
+        public enum KeyBind
+        {
+            no,
+            key
+        }
 
         public Selector(Transform parentTransform , PlayerCabin playerCabin)
         {
@@ -58,7 +64,7 @@ namespace CavingSimulator2.GameLogic.Objects
             Vector3 FaxisX = Vector3.Normalize(Vector3.Cross(Camera.lookToPoint, Camera.up));
             Vector3 FaxisZ = Vector3.Normalize(-Vector3.Cross(Camera.lookToPoint, FaxisX));
 
-            Camera.position = this.transform.Position - Camera.lookToPoint * 5f;
+            Camera.relative_position = this.transform.Position;
 
             FaxisY = new Vector3(new Vector4(FaxisY) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation.Inverted()));
             FaxisZ = new Vector3(new Vector4(FaxisZ) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation.Inverted()));
@@ -77,16 +83,9 @@ namespace CavingSimulator2.GameLogic.Objects
             if (MathF.Abs(look.Z) > MathF.Abs(look.Y) && MathF.Abs(look.Z) > MathF.Abs(look.X)) lookAxis = look.Z > 0 ? Vector3i.UnitZ : -Vector3i.UnitZ;
             if (MathF.Abs(look.Y) > MathF.Abs(look.Z) && MathF.Abs(look.Y) > MathF.Abs(look.X)) lookAxis = look.Y > 0 ? Vector3i.UnitY : -Vector3i.UnitY;
             
-            // looks to y
-            lookRotation = Vector3i.Zero;
-            if      (lookAxis.Y ==  1) { lookRotation = Vector3.Zero; }
-            else if (lookAxis.Y == -1) { lookRotation.Z = MathHelper.DegreesToRadians(180f); }
-            else if (lookAxis.X ==  1) { lookRotation.Z = MathHelper.DegreesToRadians(-90f); }
-            else if (lookAxis.X == -1) { lookRotation.Z = MathHelper.DegreesToRadians( 90f); }
-            else if (lookAxis.Z ==  1) { lookRotation.X = MathHelper.DegreesToRadians( 90f); }
-            else if (lookAxis.Z == -1) { lookRotation.X = MathHelper.DegreesToRadians(-90f); }
+            lookRotation = LookAxisToLooRotation(lookAxis);
 
-            if (!KeyBind)
+            if (keyBind == KeyBind.no)
             {
                 if (Inputs.Up)
                 {
@@ -133,6 +132,36 @@ namespace CavingSimulator2.GameLogic.Objects
                 }
             }
         }
+        public enum RightLeft
+        {
+            right,
+            left
+        }
+        public static void LoadRotate(PlayerCabin playerCabin, Vector3i localPosition, Vector3 lookAxis, RightLeft rightLeft)
+        {
+            if (playerCabin.parts.ContainsKey(localPosition))
+            {
+                if (rightLeft == RightLeft.right)
+                {
+                    playerCabin.parts[localPosition].localRotation = Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(90f)) * playerCabin.parts[localPosition].localRotation;
+                }
+                if (rightLeft == RightLeft.left)
+                {
+                    playerCabin.parts[localPosition].localRotation = Quaternion.FromAxisAngle(lookAxis, MathHelper.DegreesToRadians(-90f)) * playerCabin.parts[localPosition].localRotation;
+                }
+            }
+        }
+        public static Vector3 LookAxisToLooRotation(Vector3 lookAxis)
+        {
+            Vector3 lookRotation = Vector3i.Zero;
+            if (lookAxis.Y == 1) { lookRotation = Vector3.Zero; }
+            else if (lookAxis.Y == -1) { lookRotation.Z = MathHelper.DegreesToRadians(180f); }
+            else if (lookAxis.X == 1) { lookRotation.Z = MathHelper.DegreesToRadians(-90f); }
+            else if (lookAxis.X == -1) { lookRotation.Z = MathHelper.DegreesToRadians(90f); }
+            else if (lookAxis.Z == 1) { lookRotation.X = MathHelper.DegreesToRadians(90f); }
+            else if (lookAxis.Z == -1) { lookRotation.X = MathHelper.DegreesToRadians(-90f); }
+            return lookRotation;
+        }
         public void UpdateUI()
         {
             if (Game.UI.Current is not null)
@@ -147,6 +176,7 @@ namespace CavingSimulator2.GameLogic.Objects
                     itemInfo.empty = false;
                     itemInfo.UpdateValue(ItemInfo.Label.name, playerCabin.parts[localPosition].GetType().Name);
                     itemInfo.UpdateValue(ItemInfo.Label.key, playerCabin.parts[localPosition].key.ToString());
+                    itemInfo.UpdateValue(ItemInfo.Label.nKey, playerCabin.parts[localPosition].nkey.ToString());
                     itemInfo.UpdateValue(ItemInfo.Label.toggle, "");
                     itemInfo.UpdateValue(ItemInfo.Label.position, "X:" + localPosition.X + " Y:" + localPosition.Y + " Z:" + localPosition.Z);
 

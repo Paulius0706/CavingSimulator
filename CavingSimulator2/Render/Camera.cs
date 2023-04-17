@@ -12,8 +12,10 @@ namespace CavingSimulator2.Render
 {
     public static class Camera
     {
-        public static Vector3 position { get { return _position; } set { _position = value; } }
-        private static Vector3 _position = Vector3.Zero;
+        public static Vector3 position { get { return relative_position  - lookToPoint * lenght; } }
+        public static Vector3 relative_position = Vector3.One;
+        public static float lenght = 5;
+
 
         public static Vector3 lookToPoint { get { return _lookToPoint; } set { _lookToPoint = Vector3.Normalize(value); } }
         private static Vector3 _lookToPoint = new Vector3(0, 1, 0);
@@ -62,7 +64,7 @@ namespace CavingSimulator2.Render
 
         public static void Update()
         {
-            Matrix4 view = Matrix4.LookAt(_position, _position + _lookToPoint, up);
+            Matrix4 view = Matrix4.LookAt(position, position + _lookToPoint, up);
             Game.view = view;
             //Game.objectShader.SetUniform("View", ref view);
             //Game.blockShader.SetUniform("View", ref view);

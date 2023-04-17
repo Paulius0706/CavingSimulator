@@ -32,7 +32,6 @@ namespace CavingSimulator2
     public class Game : GameWindow
     {
 
-
         public static ShaderPrograms shaderPrograms = new ShaderPrograms();
         public static Textures textures = new Textures();
         public static BlockMeshes blockMeshes;
@@ -73,7 +72,8 @@ namespace CavingSimulator2
                 StartFocused = true,
                 API = ContextAPI.OpenGL,
                 Profile = ContextProfile.Core,
-                APIVersion = new Version(3, 3)
+                APIVersion = new Version(3, 3),
+                WindowState = WindowState.Maximized
             }
             )
         {
@@ -142,7 +142,12 @@ namespace CavingSimulator2
             Game.textures.Add("thrusterImage", new Texture("Render/Images/ThrusterImage.png"));
             Game.textures.Add("gimbalImage", new Texture("Render/Images/GimbalFrameImage.png"));
             Game.textures.Add("gyroImage", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("wingImage", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("servoImage", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("finImage", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("fliperImage", new Texture("Render/Images/TrusterDebug.png"));
 
+            Game.textures.Add("flame", new Texture("Render/Images/Flame.png"));
             Game.textures.Add("frame", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("grassBlock", new Texture("Render/Images/grass_block.png"));
             Game.textures.Add("gimbal", new Texture("Render/Images/GimbalFrame.png"));
@@ -150,27 +155,40 @@ namespace CavingSimulator2
             Game.textures.Add("truster", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("selector", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("white", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("wing", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("fin", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("fliper", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("servo", new Texture("Render/Images/Servo.png"));
+
             Game.textures.Add("debugFont", new Texture("Render/Images/DebugFont.png"));
             Game.textures.Add("font", new Texture("Render/Images/Font.png"));
 
             // Add Meshes from blender
             Game.meshes.Add("frame", "Render/Models/Frame.obj", "frame");
-            Game.meshes.Add("gimbal", "Render/Models/Frame.obj", "gimbal");
+            Game.meshes.Add("gimbal", "Render/Models/GimbalFrame.obj", "gimbal");
+            Game.meshes.Add("servo", "Render/Models/Servo.obj", "servo");
             Game.meshes.Add("truster", "Render/Models/Truster.obj", "truster");
-            Game.meshes.Add("gyroscope", "Render/Models/Selector.obj", "gyroscope");
+            Game.meshes.Add("trusterFire", "Render/Models/ThrustFire.obj", "flame");
+            Game.meshes.Add("gyroscope", "Render/Models/Gyro.obj", "gyroscope");
+            Game.meshes.Add("gyroscopeCore", "Render/Models/GyroCore.obj", "servo");
             Game.meshes.Add("selector", "Render/Models/Selector.obj", "selector");
+            Game.meshes.Add("wing", "Render/Models/Wing.obj", "wing");
+            Game.meshes.Add("fin", "Render/Models/Fin.obj", "fin");
+            Game.meshes.Add("fliper", "Render/Models/Fliper.obj", "fliper");
 
             // Set CameraPosition
-            Camera.position = new Vector3(0, -1, 0f);
+            Camera.relative_position = new Vector3(0, -1, 0f);
+            Camera.lookToPoint = (-Vector3.One).Normalized();
 
             // Add objects 
             playerid = BaseObject.incremeter;
-            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 20f))));
+            Game.objects.Add(BaseObject.incremeter, new PlayerCabin(new Transform(new Vector3(0f, 0f, 60f))));
 
             // Add UI Elements
             Game.UI["builder"] = new BuilderView();
             Game.UI["game"] = new GameView();
-            Game.UI.UseView("game");
+            Game.UI["meniu"] = new MeniuView();
+            Game.UI.UseView("meniu");
             //Game.uiMeshes.Add("inventory", "selector", new Vector2(-0.5f, -0.5f), new Vector2(0.5f, 0.5f));
 
             // Add interactive console
@@ -204,7 +222,7 @@ namespace CavingSimulator2
             Game.cursorState = CursorState;
             Game.mouse = MouseState;
             Game.deltaTime = ((float)e.Time > 0.1f ? 0.1f: (float)e.Time);
-            if(loaded) Game.physicsSpace.Timestep(Game.deltaTime);
+            if(loaded && Game.UI.Use != "meniu") Game.physicsSpace.Timestep(Game.deltaTime);
             if (firstFrame)
             {
                 this.threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
@@ -219,6 +237,7 @@ namespace CavingSimulator2
             ///////////////////////UPDATE//////////////////////////////
 
             foreach (BaseObject baseObject in objects.Values) baseObject.Update();
+            if(Game.UI.Current is not null) Game.UI.Current.Update();
 
             Game.FPS = (int)(1f / Game.deltaTime);
             this.fpsCounter++;

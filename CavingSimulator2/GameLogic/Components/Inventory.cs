@@ -1,6 +1,8 @@
 ﻿using CavingSimulator2.Debugger;
+using CavingSimulator2.GameLogic.Objects;
 using CavingSimulator2.GameLogic.Objects.SpaceShipParts;
 using CavingSimulator2.GameLogic.UI.Views.Components;
+using CavingSimulator2.Helpers;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
@@ -33,7 +35,9 @@ namespace CavingSimulator2.GameLogic.Components
             frame,
             gimbal,
             gyro,
-            thruster
+            thruster,
+            wing,
+            servo
         }
         public const int ITEM_LINE_LENGHT = 9;
         public PlayerCabin playerCabin;
@@ -80,9 +84,9 @@ namespace CavingSimulator2.GameLogic.Components
             new ItemSlot(Item.frame,new  Frame()),
             new ItemSlot(Item.gimbal,new  Gimbal(new Vector3(0f, 0f,+120f), Keys.Space)),
             new ItemSlot(Item.gyro,new  GyroScope(Quaternion.Identity,150f,Quaternion.Identity,Keys.G)),
-            new ItemSlot(Item.thruster,new  Thruster(Quaternion.Identity,60f,Keys.Unknown)),
-            new ItemSlot(Item.none,null),
-            new ItemSlot(Item.none,null),
+            new ItemSlot(Item.thruster,new  Thruster(Quaternion.Identity,80f,Keys.Unknown)),
+            new ItemSlot(Item.wing,new Wing(Quaternion.Identity)),
+            new ItemSlot(Item.servo,new Servo(Quaternion.Identity,150f,Quaternion.Identity,Keys.Q,Keys.E)),
             new ItemSlot(Item.none,null),
             new ItemSlot(Item.none,null),
             new ItemSlot(Item.none,null)
@@ -122,7 +126,7 @@ namespace CavingSimulator2.GameLogic.Components
         private void PlaceItem()
         {
             if (playerCabin.selector is null) return;
-            if (playerCabin.selector.KeyBind) return;
+            if (playerCabin.selector.keyBind == Selector.KeyBind.key) return;
             if (Game.mouse.IsButtonPressed(MouseButton.Left) && !playerCabin.parts.ContainsKey(playerCabin.selector.localPosition))
             {
                 Part part = itemSlots[index].part.Create();
@@ -138,17 +142,33 @@ namespace CavingSimulator2.GameLogic.Components
             }
 
         }
+        public void LoadPlaceItem(Item item, Vector3i localPosition, Vector3 lookRotation, Keys key = Keys.Unknown, Keys nKey = Keys.Unknown)
+        {
+            Part part = itemSlots.FirstOrDefault(o => o.item == item).part.Create();
+            Quaternion rotation = new Quaternion(new Vector3(lookRotation.X, lookRotation.Y, lookRotation.Z));
+            part.localRotation = rotation;
+            part.key = key;
+            part.nkey = nKey;
+            playerCabin.AddPart(localPosition, part);
+        }
         private void KeyBind()
         {
             if (playerCabin.selector is null) return;
-            if (!playerCabin.selector.KeyBind) return;
+            if (playerCabin.selector.keyBind != Selector.KeyBind.key) return;
             if (!playerCabin.parts.ContainsKey(playerCabin.selector.localPosition)) return;
 
             foreach(Keys key in keys)
             {
                 if (Game.input.IsKeyPressed(key)) 
-                { 
-                    playerCabin.parts[playerCabin.selector.localPosition].key = key;
+                {
+                    if (Game.input.IsKeyDown(Keys.LeftAlt)) 
+                    {
+                        playerCabin.parts[playerCabin.selector.localPosition].nkey = key;
+                    }
+                    else
+                    {
+                        playerCabin.parts[playerCabin.selector.localPosition].key = key;
+                    }
                     Debug.WriteLine(playerCabin.parts[playerCabin.selector.localPosition].GetType().Name + " <= " + key);
                     playerCabin.selector.UpdateUI();
                 }
@@ -159,12 +179,12 @@ namespace CavingSimulator2.GameLogic.Components
         {
             if (playerCabin.selector is null) return;
             Vector2 scroll = Game.mouse.ScrollDelta;
-            if(scroll.Y == -1)
+            if(Inputs.ScroolUp)
             {
                 index = index > 0 ? index - 1 : ITEM_LINE_LENGHT - 1;
                 cursorStateHasChanged = true;
             }
-            if(scroll.Y == 1)
+            if(Inputs.ScroolDonw)
             {
                 index = index < ITEM_LINE_LENGHT - 1 ? index + 1 : 0;
                 cursorStateHasChanged = true;

@@ -25,6 +25,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         public Vector3i blockDetectionDistance;
         private bool disposed;
         private const float angularDrag = 0.5f;
+        private const float linearDrag = 0.1f;
         private const int PartsLimit = 50;
         private Dictionary<Vector3, ShapeInfo> shapesInfo = new Dictionary<Vector3, ShapeInfo>();
         private Dictionary<Vector3, float> shapesMasses = new Dictionary<Vector3, float>();
@@ -72,6 +73,8 @@ namespace CavingSimulator2.GameLogic.Components.Physics
                 (angularVelocity.Z - drag >= 0 ? angularVelocity.Z - drag : 0f) :
                 (angularVelocity.Z + drag <= 0 ? angularVelocity.Z + drag : 0f);
             AngularVelocity = angularVelocity;
+
+            LinearVelocity -= LinearVelocity * linearDrag * Game.deltaTime;
         }
 
         private void UpdateTransform()

@@ -37,6 +37,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
         public override void Update()
         {
+            if (Game.UI.Use == "meniu") return;
             rigBody.Update();
         }
 

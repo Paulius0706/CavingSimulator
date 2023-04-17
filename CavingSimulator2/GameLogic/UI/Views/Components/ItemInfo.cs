@@ -17,7 +17,8 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             name = 0,
             position = 1,
             toggle = 2,
-            key = 3
+            key = 3,
+            nKey = 4
         }
         public float BackGroundOpacity = 0.3f;
         public float TextOpacity = 0.9f;
@@ -62,6 +63,7 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             labels.AddLine("Position", labelsTextColor);
             labels.AddLine("Toggle", labelsTextColor);
             labels.AddLine("Trigger", labelsTextColor);
+            labels.AddLine("Neg. Trigger", labelsTextColor);
 
 
             GetCordsFromLowerPositionWidthHeight(
@@ -74,6 +76,7 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             values = new TextLines("ItemInfo", 
                 new Vector2(LowerUpperPosition.X + paddling + labels.PixelWidth + paddling + gap + paddling, LowerUpperPosition.Y - paddling), 
                 new Vector2(Letter_Width, Letter_Height));
+            values.AddLine("", valuesTextColor);
             values.AddLine("", valuesTextColor);
             values.AddLine("", valuesTextColor);
             values.AddLine("", valuesTextColor);

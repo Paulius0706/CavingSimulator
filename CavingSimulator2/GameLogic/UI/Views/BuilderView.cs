@@ -26,7 +26,8 @@ namespace CavingSimulator2.GameLogic.UI.Views
             hintInfo.Update(new List<string>()
             {
                 "Exist Build - B   ",
-                "  Bind Keys - L   ",
+                "   Bind Key - L   ",
+                "Set Key Neg - ALT ",
                 "     Rotate - Q,E ",
                 "       Move - WASD",
             });

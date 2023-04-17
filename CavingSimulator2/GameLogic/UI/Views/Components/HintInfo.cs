@@ -38,20 +38,8 @@ namespace CavingSimulator2.GameLogic.UI.Views.Components
             var ltc = Color4.GhostWhite;
             textTextColor = new Color4(ltc.R, ltc.G, ltc.B, TextOpacity);
             
-            this.tag = tag;
             this.UpperPosition = UpperPosition;
 
-
-            //text = new TextLines("ItemInfo",
-            //    new Vector2(UpperPosition.X - paddling - paddling - info.Select(o => o.Length).Max() * Letter_Width, UpperPosition.Y - paddling),
-            //    new Vector2(Letter_Width, Letter_Height));
-
-            //GetCordsFromLowerPositionWidthHeight(
-            //    new Vector2(UpperPosition.X, UpperPosition.Y - text.PixelHeight - paddling - paddling),
-            //    new Vector2(paddling + text.PixelWidth + paddling, paddling + text.PixelHeight + paddling),
-            //    out Vector2 lLabelPosition,
-            //    out Vector2 uLabelPosition);
-            //textBackGround = new UIMesh(Game.textures.GetIndex("white"), uLabelPosition, lLabelPosition, Vector2.Zero, Vector2.One, textBackGroundColor, 1f);
         }
         public void Update(List<string> lines)
         {

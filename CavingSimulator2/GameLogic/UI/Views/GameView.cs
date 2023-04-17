@@ -17,9 +17,10 @@ namespace CavingSimulator2.GameLogic.UI.Views
             {
                 "Build - B",
                 "Pause - P",
-
+                "SelectBuild",
             });
             views.Add("HintLine", hintInfo);
+
 
         }
     }

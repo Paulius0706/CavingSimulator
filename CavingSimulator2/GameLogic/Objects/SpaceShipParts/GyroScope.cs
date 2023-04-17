@@ -1,9 +1,11 @@
 ﻿using CavingSimulator.GameLogic.Components;
+using CavingSimulator2.Debugger;
 using CavingSimulator2.Render.Meshes;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,22 +14,27 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 {
     public class GyroScope : Part
     {
-        public Quaternion targetRotation;
+        Transform coreTransform;
+        Mesh core;
         public float force;
         public bool active;
         //public Keys key;
+        public Vector3 localUp;
         public GyroScope(Transform transform, Quaternion localRotation, float force, Quaternion targetRotation, Keys key = Keys.Unknown) : base()
         {
             ImageName = "gyroImage";
             this.active = true;
             this.transform = transform;
             this.localRotation = localRotation;
-            this.targetRotation = targetRotation;
+            this.coreTransform = new Transform(transform.Position);
             this.force = force;
             this.key = key;
 
+            //this.localUp = new Vector3(Vector4.UnitZ * Matrix4.CreateFromQuaternion(this.localRotation));
+
             this.renderer = new Renderer();
             this.renderer.AddMesh(new Mesh(this.transform, "gyroscope"));
+            this.core = new Mesh(this.coreTransform, "gyroscopeCore");
         }
         public GyroScope(Quaternion localRotation, float force, Quaternion targetRotation, Keys key = Keys.Unknown) : base()
         {
@@ -35,33 +42,67 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
             this.active = true;
             this.transform = new Transform(Vector3.Zero);
             this.localRotation = localRotation;
-            this.targetRotation = targetRotation;
+            this.coreTransform = new Transform(transform.Position);
             this.force = force;
             this.key = key;
 
+            
+
             this.renderer = new Renderer();
             this.renderer.AddMesh(new Mesh(this.transform, "gyroscope"));
+            this.core = new Mesh(this.coreTransform, "gyroscopeCore");
         }
 
         public override void Update()
         {
-            Vector3 localPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
-            transform.Position = this.parentTransform.Position + localPos;
-            var qRotation = (this.parentTransform.Rotation * this.localRotation);
-            transform.Rotation = qRotation;
+            Vector3 globalPos = new Vector3(new Vector4(localPosition) * Matrix4.CreateFromQuaternion(this.parentTransform.Rotation));
+            transform.Position = this.parentTransform.Position + globalPos;
+            transform.Rotation = (this.parentTransform.Rotation * this.localRotation);
 
-            if (key != Keys.Unknown && Game.input.IsKeyDown(key)) { active = !active; }
+            coreTransform.Position = transform.Position;
+            coreTransform.Rotation = localRotation;
+
+            if (Game.UI.Use == "meniu") return;
+            
+
+
+            if (key != Keys.Unknown && Game.input.IsKeyPressed(key)) { active = !active; }
             if (active)
             {
-                Quaternion rotationTargetDelta = (targetRotation * parentRigbody.Rotation.Inverted());
-                if (rotationTargetDelta == Quaternion.Identity) return;
-                Vector3 rotationForce = rotationTargetDelta.ToEulerAngles() * force * Game.deltaTime;
-                parentRigbody.AddAngularVelocity(rotationForce);
+
+                this.localUp = new Vector3(Vector4.UnitZ * Matrix4.CreateFromQuaternion(this.localRotation));
+                Vector3 upVec = (new Vector3(Vector4.UnitZ * Matrix4.CreateFromQuaternion(this.transform.Rotation))).Normalized();
+                Vector3 rightVec = (new Vector3(Vector4.UnitX * Matrix4.CreateFromQuaternion(this.transform.Rotation))).Normalized();
+                Vector3 leftVec = -rightVec;
+                Vector3 rightPos = globalPos + rightVec;
+                Vector3 leftPos = globalPos + leftVec;
+
+                float rightDist = (localUp - rightVec).Length;
+                float leftDist = (localUp - leftVec).Length;
+
+                float multiply = 0.25f;
+                if (rightDist > leftDist)
+                {
+                    parentRigbody.AddForce(rightPos, upVec * Game.deltaTime * force * multiply);
+                    parentRigbody.AddForce(leftPos, -upVec * Game.deltaTime * force * multiply);
+                }
+                if (rightDist < leftDist)
+                {
+                    parentRigbody.AddForce(rightPos, -upVec * Game.deltaTime * force * multiply);
+                    parentRigbody.AddForce(leftPos,  upVec * Game.deltaTime * force * multiply);
+                }
+
+
             }
+        }
+        public override void Render()
+        {
+            base.Render();
+            if (core is not null) core.Render();
         }
         public override Part Create()
         {
-            return new GyroScope(localRotation, force,targetRotation, key);
+            return new GyroScope(localRotation, force,Quaternion.Identity, key);
         }
     }
 }
