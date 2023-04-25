@@ -141,9 +141,9 @@ namespace CavingSimulator2
             Game.textures.Add("frameImage", new Texture("Render/Images/FrameImage.png"));
             Game.textures.Add("thrusterImage", new Texture("Render/Images/ThrusterImage.png"));
             Game.textures.Add("gimbalImage", new Texture("Render/Images/GimbalFrameImage.png"));
-            Game.textures.Add("gyroImage", new Texture("Render/Images/TrusterDebug.png"));
-            Game.textures.Add("wingImage", new Texture("Render/Images/TrusterDebug.png"));
-            Game.textures.Add("servoImage", new Texture("Render/Images/TrusterDebug.png"));
+            Game.textures.Add("gyroImage", new Texture("Render/Images/GyroScopeImage.png"));
+            Game.textures.Add("wingImage", new Texture("Render/Images/WingImage.png"));
+            Game.textures.Add("servoImage", new Texture("Render/Images/ServoImage.png"));
             Game.textures.Add("finImage", new Texture("Render/Images/TrusterDebug.png"));
             Game.textures.Add("fliperImage", new Texture("Render/Images/TrusterDebug.png"));
 

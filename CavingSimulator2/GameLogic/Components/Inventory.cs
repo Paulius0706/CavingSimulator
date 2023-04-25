@@ -129,6 +129,8 @@ namespace CavingSimulator2.GameLogic.Components
             if (playerCabin.selector.keyBind == Selector.KeyBind.key) return;
             if (Game.mouse.IsButtonPressed(MouseButton.Left) && !playerCabin.parts.ContainsKey(playerCabin.selector.localPosition))
             {
+                if (itemSlots[index].item == Item.none) return;
+                if (itemSlots[index].part is null) return;
                 Part part = itemSlots[index].part.Create();
                 Quaternion rotation = new Quaternion(new Vector3(playerCabin.selector.lookRotation.X, playerCabin.selector.lookRotation.Y, playerCabin.selector.lookRotation.Z));
                 part.localRotation = rotation;

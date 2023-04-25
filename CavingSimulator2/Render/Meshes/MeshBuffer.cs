@@ -39,8 +39,8 @@ namespace CavingSimulator2.Render.Meshes
             {
                 buffer[i] = new VertexPCTN(vertices[i], new Color4(1f, 1f, 1f, 1f), textures[i], normals[i]);
             }
-            vertexBuffer = new VertexBuffer(VertexPCTN.VertexInfo, buffer.Length, BufferUsageHint.StaticDraw);
-            indexBuffer = new IndexBuffer(indicesCount, BufferUsageHint.StaticDraw);
+            vertexBuffer = new VertexBuffer(VertexPCTN.VertexInfo, buffer.Length, BufferUsageHint.DynamicDraw);
+            indexBuffer = new IndexBuffer(indicesCount, BufferUsageHint.DynamicDraw);
             vertexArray = new VertexArray(vertexBuffer);
 
             vertexBuffer.SetSubData(ref buffer, buffer.Length);

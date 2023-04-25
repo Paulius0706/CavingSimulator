@@ -174,9 +174,12 @@ namespace CavingSimulator2.GameLogic.Components
                         int height = HeightNoise.GetHeight(x, y);
                         for (int z = 0; z <= height; z++)
                         {
+                            int seed = height + random.Next(4) - 2;
                             Vector3i blockPos = new Vector3i(x, y, z);
-                            //random.Next(3) 
-                            Block block = new Block() { position = blockPos, id = random.Next(3) };
+                            Block block = new Block() { position = blockPos, id = 0 };
+
+                            if (seed < 15) block.id = 2;
+                            if (seed < 8) block.id = 1;
                             blocks.Add(blockPos, block);
                         }
                     }

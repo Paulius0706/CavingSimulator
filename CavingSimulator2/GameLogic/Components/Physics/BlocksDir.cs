@@ -16,23 +16,6 @@ namespace CavingSimulator2.GameLogic.Components.Physics
         public static Dictionary<Vector3i, (Transform, Vector3)> register = new Dictionary<Vector3i, (Transform, Vector3)>();
         public static void Update()
         {
-            /*
-            var keys2 = register.Keys;
-            foreach (Vector3i key in keys2)
-            {
-                if (!colliderBlocks.ContainsKey(key))
-                {
-                    colliderBlocks.Add(key, new StaticBody(register[key].Item1, register[key].Item2));
-                }
-            }
-            var keys1 = colliderBlocks.Keys;
-            foreach (Vector3i key in keys1)
-            {
-                if (!register.ContainsKey(key)) { colliderBlocks[key].Remove(); colliderBlocks.Remove(key); }
-            }
-            
-            register.Clear();
-            */
             
             var keys = colliderBlocks.Keys;
             foreach (Vector3i key in keys)

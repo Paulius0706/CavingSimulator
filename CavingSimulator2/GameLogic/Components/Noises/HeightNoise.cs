@@ -37,6 +37,7 @@ namespace CavingSimulator2.GameLogic.Components.Noises
             return (int)((instance.noise.GetPerlinFractal(x, y) + 0.5f) *  (maxHeight - minHeight)) + (int)minHeight;
             return (int)(MathF.Abs(MathF.Pow(instance.noise.GetPerlin(x, y),3)) * 3f * (maxHeight-minHeight)) + (int)minHeight;
         }
+
         
     }
 }

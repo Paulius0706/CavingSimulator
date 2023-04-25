@@ -61,6 +61,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
             coreTransform.Position = transform.Position;
             coreTransform.Rotation = localRotation;
+            //SetCoreRotation();
 
             if (Game.UI.Use == "meniu") return;
             
@@ -77,6 +78,7 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
                 Vector3 rightPos = globalPos + rightVec;
                 Vector3 leftPos = globalPos + leftVec;
 
+                
                 float rightDist = (localUp - rightVec).Length;
                 float leftDist = (localUp - leftVec).Length;
 
@@ -94,6 +96,24 @@ namespace CavingSimulator2.GameLogic.Objects.SpaceShipParts
 
 
             }
+        }
+        private void SetCoreRotation()
+        {
+            Vector3 localFoward = new Vector3(new Vector4(Vector3.UnitY) * Matrix4.CreateFromQuaternion(this.localRotation));
+            Vector3 localUP = new Vector3(new Vector4(Vector3.UnitZ) * Matrix4.CreateFromQuaternion(this.localRotation));
+            Vector3 globalFoward = new Vector3(new Vector4(Vector3.UnitY) * Matrix4.CreateFromQuaternion(this.transform.Rotation));
+            Vector3 globalUP = new Vector3(new Vector4(Vector3.UnitZ) * Matrix4.CreateFromQuaternion(this.transform.Rotation));
+            
+            float angletoSurface = MathHelper.DegreesToRadians(90f) - Vector3.CalculateAngle(localUP, globalFoward);
+            Vector3 axisToNormalVec = Vector3.Cross(localUP, globalFoward);
+            Quaternion rotationToPlane = Quaternion.FromAxisAngle(axisToNormalVec, -angletoSurface);
+            localUP = new Vector3(new Vector4(localUP) * Matrix4.CreateFromQuaternion(rotationToPlane));
+
+            float angle = Vector3.CalculateAngle(globalUP, localUP);
+
+            localRotation.ToEulerAngles(out Vector3 angles);
+            transform.Rotation.ToEulerAngles(out Vector3 globalAngles);
+            coreTransform.Rotation = Quaternion.FromEulerAngles(angles.X,globalAngles.Y,globalAngles.Z);
         }
         public override void Render()
         {

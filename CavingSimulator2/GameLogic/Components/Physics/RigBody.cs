@@ -132,6 +132,7 @@ namespace CavingSimulator2.GameLogic.Components.Physics
             // adds new shape to selected list
             if (shapesInfo.ContainsKey(localPosition)) return;
             shapesInfo.Add(localPosition, (shapeType, localPosition, localRotation.ToEulerAngles(), mass));
+            blockDetectionDistance = (Vector3i)(Vector3.One * (shapesInfo.Keys.Max(o => o.Length) + 2f));
             UpdateShape();
             
         }
